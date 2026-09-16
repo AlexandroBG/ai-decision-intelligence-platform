@@ -1,0 +1,23 @@
+[project]
+name = "ai-decision-intelligence-platform"
+version = "0.1.0"
+description = "AI-powered decision intelligence platform"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas",
+    "numpy",
+    "scikit-learn",
+    "scipy",
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "python-dotenv",
+    "streamlit",
+    "pytest"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff"
+]
