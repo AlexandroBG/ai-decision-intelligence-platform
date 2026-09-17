@@ -1,0 +1,21 @@
+product_id,product_name,category,unit_cost
+P001,Computing Product 01,Computing,996.56
+P002,Computing Product 02,Computing,694.99
+P003,Computing Product 03,Computing,1072.74
+P004,Computing Product 04,Computing,927.63
+P005,Computing Product 05,Computing,384.76
+P006,Networking Product 01,Networking,489.76
+P007,Networking Product 02,Networking,399.68
+P008,Networking Product 03,Networking,410.15
+P009,Networking Product 04,Networking,133.81
+P010,Networking Product 05,Networking,269.16
+P011,Accessories Product 01,Accessories,50.79
+P012,Accessories Product 02,Accessories,111.94
+P013,Accessories Product 03,Accessories,80.83
+P014,Accessories Product 04,Accessories,100.5
+P015,Accessories Product 05,Accessories,58.78
+P016,Office Product 01,Office,91.35
+P017,Office Product 02,Office,179.74
+P018,Office Product 03,Office,47.23
+P019,Office Product 04,Office,253.46
+P020,Office Product 05,Office,200.55

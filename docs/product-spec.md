@@ -2,653 +2,277 @@
 
 ## 1. Product Overview
 
-DecisionAI is an AI-powered Decision Intelligence Platform
-designed to help business analysts and operations teams
-understand changes in business performance and identify
-what they should investigate first.
+DecisionAI is an AI-powered decision intelligence platform that combines structured business data, deterministic analytics, machine learning, and controlled AI workflows to turn raw data into evidence-backed decisions.
 
-The platform transforms business questions and operational
-data into structured, evidence-backed analyses by combining
-deterministic data analysis, machine learning, and AI-assisted
-reasoning.
+The initial MVP focuses on revenue-performance investigation rather than broad autonomous business decision-making.
 
-The initial version of DecisionAI will focus on revenue
-performance analysis. Given business data, the system will
-help users identify the factors contributing to changes in
-revenue across dimensions such as time, products, regions,
-customer segments, sales channels, order volume, and
-discounts.
+Core product question:
 
-Rather than relying on a language model to perform numerical
-analysis directly, DecisionAI will use deterministic Python
-and SQL tools for calculations and use AI models for tasks
-such as understanding user intent, planning analyses,
-selecting appropriate tools, interpreting results, and
-communicating findings.
+> What is affecting revenue performance, and what should I investigate first?
 
-The long-term goal is to develop DecisionAI into a reliable
-AI-assisted decision-support system capable of combining
-data analysis, machine learning, and agentic workflows while
-maintaining traceability, evaluation, and human oversight.
+The product should support analysts by combining reproducible calculations with AI-assisted interpretation while preserving human review for important conclusions.
 
 ## 2. Target User
 
-### 2.1 Primary User
+### Primary User
 
-The primary user of DecisionAI is a Business Analyst responsible
-for monitoring and investigating business performance.
+The primary user is a Business Analyst who needs to investigate business-performance changes efficiently.
 
-This user regularly works with operational and commercial data
-and may use tools such as spreadsheets, SQL, BI platforms, or
-Python to analyze KPIs and answer business questions.
+The analyst should be able to:
 
-The user is comfortable working with data but may spend
-significant time moving between dashboards, queries, datasets,
-and analytical tools to understand the factors behind changes
-in business performance.
+- Load or select supported structured datasets.
+- Ask supported revenue-performance questions.
+- Inspect calculated metrics.
+- Review major observed contributors.
+- Understand the evidence supporting the analysis.
+- Receive AI-assisted interpretation.
+- Decide what deserves further investigation.
 
-DecisionAI is intended to augment the analyst's capabilities
-rather than replace the analyst. The system should automate
-repetitive analytical work, surface relevant evidence, and help
-structure investigations while keeping the analyst responsible
-for validating findings and making or communicating business
-decisions.
+### Secondary User
 
-### 2.2 Secondary User
-
-A secondary user is an Operations Manager or business stakeholder
-who needs to understand changes in business performance but may
-not perform detailed analysis directly.
-
-This user is primarily interested in understanding what changed,
-which factors contributed to the change, how significant those
-factors are, and what areas deserve further investigation.
-
-### 2.3 Job-to-be-Done
-
-When an important business KPI changes, the user wants to
-understand the main factors driving that change and obtain
-evidence supporting those findings so that they can determine
-what deserves further investigation.
-
-### 2.4 Initial User Characteristics
-
-The initial target user is expected to have:
-
-- Medium to high data literacy.
-- Experience interpreting business KPIs.
-- Familiarity with spreadsheets or BI tools.
-- Basic to intermediate SQL knowledge in many cases.
-- Optional Python experience.
-- No requirement for AI engineering expertise.
-
-The product should therefore provide a natural-language
-interface while preserving access to the underlying analytical
-evidence and calculations.
+A secondary user is an Operations Manager or business stakeholder who needs a concise, evidence-backed explanation of what changed and what should be investigated.
 
 ## 3. User Problem
 
-Business analysts and operations teams often have access to
-large amounts of business data, but understanding why an
-important KPI changed can require a fragmented and repetitive
-analytical process.
+Business users frequently have access to structured data but still spend significant time:
 
-A typical investigation may require the user to move between
-dashboards, SQL queries, spreadsheets, Python notebooks, and
-other analytical tools while repeatedly comparing time periods,
-segments, products, regions, channels, and other business
-dimensions.
+- Preparing datasets.
+- Calculating KPIs.
+- Comparing periods.
+- Segmenting results.
+- Identifying relevant contributors.
+- Converting numerical findings into understandable explanations.
+- Verifying whether an AI-generated answer is actually supported by evidence.
 
-The primary problem DecisionAI aims to address is the gap
-between observing a change in business performance and
-identifying the evidence that explains which factors contributed
-most to that change.
+General-purpose LLMs can produce plausible explanations but may invent numbers, misinterpret business data, or overstate causality.
 
-### 3.1 Main Pain Points
-
-The initial user problems include:
-
-- Analytical workflows are fragmented across multiple tools.
-- Similar diagnostic analyses must often be repeated manually.
-- Moving from a KPI change to a useful explanation can be
-  time-consuming.
-- Analysts may need to inspect many dimensions before identifying
-  the most relevant contributors.
-- Business stakeholders may need an explanation without having
-  direct access to the underlying analytical workflow.
-- AI-generated explanations are not useful if users cannot trace
-  them back to calculations and source data.
-
-### 3.2 Initial Problem Boundary
-
-The first version of DecisionAI will focus on descriptive and
-diagnostic analysis of business performance.
-
-The system may identify correlations, patterns, anomalies, and
-contributors present in the available data, but it should not
-claim that an observed relationship is causal unless the
-analysis and available evidence justify that conclusion.
-
-DecisionAI is intended to support investigation and decision
-making. It should not autonomously execute high-impact business
-decisions or replace human validation of important findings.
+DecisionAI should reduce time-to-insight while preserving deterministic evidence and explicit analytical limitations.
 
 ## 4. Business Context
 
-DecisionAI is intended for organizations that already collect
-operational and commercial data and monitor business KPIs but
-still rely on significant manual analytical effort to investigate
-changes in performance.
+The initial product assumes a business with transaction, customer, and product data.
 
-In these environments, the cost of analysis is not limited to
-the time required to calculate a metric. Analysts may need to
-move between multiple tools, repeat similar investigations, and
-communicate findings to stakeholders before the organization
-can decide what deserves attention.
-
-The initial business hypothesis behind DecisionAI is that a
-system capable of automating repetitive analytical steps and
-surfacing traceable evidence can reduce the effort and time
-required to move from a business question to a useful
-investigation.
-
-### 4.1 Potential Business Value
-
-Potential sources of business value include:
-
-- Reducing time-to-insight for recurring analytical questions.
-- Reducing repetitive manual analytical work.
-- Helping analysts prioritize the most relevant contributors
-  to KPI changes.
-- Making analytical evidence easier to communicate to
-  non-technical stakeholders.
-- Improving consistency and traceability across repeated
-  investigations.
-- Allowing analysts to spend more time validating findings and
-  investigating higher-value questions.
-
-These are initial product hypotheses and should not be treated
-as proven benefits until they are measured during product
-evaluation.
-
-### 4.2 Initial Stakeholders
-
-The initial stakeholders include:
-
-- Business Analysts, who perform and validate the analysis.
-- Operations Managers, who consume findings and decide what
-  deserves further investigation.
-- Data or Engineering teams, who may be responsible for the
-  quality and availability of the underlying data.
-- Business leaders, who may evaluate whether the product
-  creates sufficient value relative to its cost and risk.
-
-### 4.3 Initial Business Metrics
-
-Candidate business and product metrics include:
-
-- Time-to-insight.
-- Manual analytical effort.
-- Percentage of analytical questions completed successfully.
-- User-reported usefulness of findings.
-- Frequency of repeated use.
-- Cost per completed analysis.
-
-The final metrics and measurement methodology will be refined
-as the product and evaluation strategy mature.
-## 5. Core Question
-
-The initial version of DecisionAI will be designed around one
-primary analytical question:
-
-> What is affecting revenue performance, and what should I
-> investigate first?
-
-This question defines the analytical focus of the MVP.
-
-The system should help the user move from observing a change in
-revenue to identifying the main factors associated with that
-change and prioritizing the areas that deserve further
-investigation.
-
-The first version should be able to investigate contributors
-across dimensions such as:
+The MVP should support questions related to revenue performance across dimensions such as:
 
 - Time period.
-- Order volume.
-- Average order value.
-- Product or product category.
 - Region.
 - Customer segment.
+- Product.
+- Product category.
 - Sales channel.
-- Discounts.
+- Discount behavior.
 
-The system should rank relevant contributors based on the
-available evidence and clearly distinguish observed contribution
-from proven causality.
+The initial environment uses synthetic business data so that expected patterns can be controlled and evaluated.
 
-The Core Question is intentionally narrow so that the product,
-data model, analytical tools, and evaluation framework can be
-designed around a clearly defined use case before expanding to
-additional decision-intelligence capabilities.
+## 5. Core Question
+
+The MVP should primarily answer:
+
+> What is affecting revenue performance, and what should I investigate first?
+
+The system should decompose this into analytical subquestions such as:
+
+- Did revenue increase or decrease?
+- By how much?
+- Which dimensions contributed most to the change?
+- Which contributors deserve investigation?
+- What evidence supports each finding?
+- What limitations prevent stronger conclusions?
+
 ## 6. Value Proposition
 
-DecisionAI aims to help business analysts move more efficiently
-from observing a change in a business KPI to understanding the
-evidence behind that change.
+DecisionAI should help analysts move from raw data to structured investigation more quickly.
 
-The product is designed to complement existing analytical tools
-such as SQL, spreadsheets, Python, and BI platforms rather than
-replace them. Its primary value is expected to come from
-orchestrating repetitive analytical steps, prioritizing relevant
-findings, and presenting traceable evidence through a
-natural-language interface.
+The product should provide:
 
-### 6.1 Value for Business Analysts
+- Reproducible calculations.
+- Evidence-backed contributor analysis.
+- Clear analytical explanations.
+- Controlled AI interpretation.
+- Explicit limitations.
+- Human-review support.
+- A repeatable evaluation framework for system quality.
 
-For Business Analysts, DecisionAI aims to:
+The objective is not to automate every business decision.
 
-- Reduce repetitive analytical work.
-- Reduce the time required to investigate recurring KPI changes.
-- Automatically inspect relevant business dimensions.
-- Prioritize the contributors that deserve further investigation.
-- Preserve access to the calculations and evidence behind
-  generated findings.
-- Allow analysts to spend more time validating insights and
-  investigating higher-value questions.
-
-### 6.2 Value for Business Stakeholders
-
-For Operations Managers and other business stakeholders,
-DecisionAI aims to:
-
-- Provide clearer explanations of business-performance changes.
-- Make analytical findings easier to consume without requiring
-  direct interaction with SQL, Python, or other analytical tools.
-- Highlight the factors that deserve the most attention.
-- Preserve a connection between high-level findings and the
-  underlying analytical evidence.
-
-### 6.3 Initial Differentiation
-
-DecisionAI is not intended to function as a generic chatbot or
-as a replacement for a traditional BI platform.
-
-Its initial differentiation is the combination of:
-
-- Natural-language interaction.
-- Deterministic analytical tools.
-- Machine learning where predictive capabilities add value.
-- AI-assisted planning and interpretation.
-- Traceability between findings and analytical evidence.
-- Evaluation of system quality and reliability.
-- Human oversight for important conclusions and decisions.
-
-The expected benefits described in this section are product
-hypotheses. They must be validated through measurement,
-experimentation, and user feedback before they are treated as
-proven product outcomes.
+The objective is to improve analytical productivity and consistency while preserving human judgment.
 
 ## 7. User Stories
 
-The initial MVP will be designed around a small set of user
-stories that represent the main analytical needs of the target
-users.
+### US-001
 
-### 7.1 Revenue Change Analysis
+As a Business Analyst, I want to load supported business datasets so that I can analyze revenue performance.
 
-As a Business Analyst, I want to understand how revenue changed
-between two periods so that I can determine the magnitude and
-direction of the change.
+### US-002
 
-### 7.2 Contributor Identification
+As a Business Analyst, I want DecisionAI to validate my data before analysis so that I do not rely on invalid results.
 
-As a Business Analyst, I want to identify which business
-dimensions contributed most to a revenue change so that I can
-focus my investigation on the most relevant factors.
+### US-003
 
-### 7.3 Investigation Prioritization
+As a Business Analyst, I want to compare revenue between two periods so that I can understand performance changes.
 
-As a Business Analyst, I want the system to rank relevant
-contributors so that I know which areas deserve attention first.
+### US-004
 
-### 7.4 Evidence Traceability
+As a Business Analyst, I want to see the absolute and percentage revenue change so that I can quantify the performance difference.
 
-As a Business Analyst, I want to see the calculations and
-evidence supporting each finding so that I can validate the
-system's interpretation.
+### US-005
 
-### 7.5 Natural-Language Analysis
+As a Business Analyst, I want to identify the dimensions that contributed most to the change so that I know where to investigate.
 
-As a Business Analyst, I want to ask analytical questions in
-natural language so that I do not need to manually write every
-query or analytical workflow.
+### US-006
 
-### 7.6 Stakeholder Explanation
+As a Business Analyst, I want to inspect supporting evidence so that I can verify the system's conclusions.
 
-As an Operations Manager, I want a concise explanation of what
-changed, which factors contributed most, and what deserves
-further investigation so that I can understand the situation
-without reviewing every analytical detail.
+### US-007
 
-### 7.7 Human Validation
+As a Business Analyst, I want to ask supported questions in natural language so that I do not need to manually select every analytical operation.
 
-As a Business Analyst, I want to review the evidence and
-calculations before accepting important conclusions so that
-DecisionAI remains a decision-support tool rather than an
-autonomous decision maker.
+### US-008
+
+As a Business Analyst, I want AI-assisted interpretation grounded in calculated evidence so that results are easier to understand.
+
+### US-009
+
+As a Business Analyst, I want the system to communicate limitations and uncertainty so that I do not confuse observed contribution with causality.
+
+### US-010
+
+As a stakeholder, I want a concise summary of what changed and what deserves investigation so that I can act on the analysis efficiently.
 
 ## 8. MVP Scope
 
-The first version of DecisionAI will focus on validating whether
-an AI-assisted analytical workflow can help business analysts
-investigate revenue-performance changes more efficiently while
-preserving traceability and human validation.
+The MVP includes:
 
-The MVP will intentionally remain narrow. Its primary objective
-is to answer the Core Question reliably before expanding into
-additional analytical or agentic capabilities.
+- Supported CSV ingestion.
+- Data validation.
+- Revenue calculation.
+- Period comparison.
+- Order-volume analysis.
+- Average-order-value analysis.
+- Dimensional aggregation.
+- Contributor analysis.
+- Contributor ranking.
+- Evidence generation.
+- Natural-language analytical requests.
+- AI-assisted interpretation grounded in deterministic evidence.
+- Evaluation of deterministic and AI behavior.
+- Human review.
+- Basic persistence where justified.
+- Basic observability.
 
-### 8.1 In Scope
-
-The MVP should support:
-
-- Loading a defined set of business datasets.
-- Validating the basic structure and quality of input data.
-- Calculating revenue for selected time periods.
-- Comparing revenue across periods.
-- Calculating revenue growth or decline.
-- Calculating order volume and average order value.
-- Analyzing revenue changes across:
-  - products or product categories;
-  - regions;
-  - customer segments;
-  - sales channels;
-  - order volume;
-  - discounts.
-- Ranking the most relevant observed contributors to a revenue
-  change.
-- Presenting the calculations and evidence behind findings.
-- Accepting a limited set of analytical questions through a
-  natural-language interface.
-- Using an AI model to assist with interpretation and
-  communication of analytical results.
-- Keeping important conclusions subject to human validation.
-
-### 8.2 Out of Scope for the Initial MVP
-
-The initial MVP will not include:
-
-- Autonomous execution of business decisions.
-- Advanced customer churn prediction.
-- Advanced revenue forecasting.
-- Complex multi-agent architectures.
-- Fine-tuning of language models.
-- Vector databases or knowledge graphs unless later evidence
-  demonstrates a clear need.
-- Enterprise authentication and role-based access control.
-- Large-scale distributed data processing.
-- Production-scale infrastructure such as Kubernetes.
-- Voice or computer-use interfaces.
-- Broad support for arbitrary business domains outside the
-  initial revenue-performance use case.
-
-### 8.3 MVP Principle
-
-A capability should be added to the MVP only when it directly
-supports the Core Question, improves the reliability of the
-analysis, or is necessary to evaluate the product hypothesis.
-
-Capabilities that do not meet these criteria should remain in
-the future roadmap until evidence justifies their inclusion.    
+The MVP should remain focused on revenue-performance investigation.
 
 ## 9. Functional Requirements
 
-The MVP functional requirements define the observable behaviors
-that DecisionAI must provide in order to support the initial
-revenue-performance investigation use case.
+### Data Ingestion and Validation
 
-### 9.1 Data Input and Validation
+**FR-001** DecisionAI shall load supported transaction data from `orders.csv`.
 
-**FR-001**  
-The system shall load the supported business datasets required
-for the MVP analysis.
+**FR-002** DecisionAI shall load supported customer data from `customers.csv`.
 
-**FR-002**  
-The system shall validate that required columns and basic data
-types are present before running an analysis.
+**FR-003** DecisionAI shall load supported product data from `products.csv`.
 
-**FR-003**  
-The system shall identify invalid, missing, or inconsistent
-input data that may prevent a reliable analysis.
+**FR-004** DecisionAI shall verify required columns before analytical execution.
 
-**FR-004**  
-The system shall stop or clearly warn the user when input-data
-quality is insufficient for a supported analysis.
+**FR-005** DecisionAI shall validate supported data types and required values.
 
-### 9.2 Revenue and KPI Analysis
+**FR-006** DecisionAI shall detect duplicate primary identifiers where uniqueness is required.
 
-**FR-005**  
-The system shall calculate total revenue for a selected time
-period.
+**FR-007** DecisionAI shall validate supported business rules such as quantity, price, discount, and date constraints.
 
-**FR-006**  
-The system shall compare revenue between two supported time
-periods.
+**FR-008** DecisionAI shall validate customer and product references used by orders.
 
-**FR-007**  
-The system shall calculate absolute and percentage revenue
-change between the compared periods.
+### Deterministic Analytics
 
-**FR-008**  
-The system shall calculate order volume for each analyzed
-period.
+**FR-009** DecisionAI shall calculate revenue using deterministic code.
 
-**FR-009**  
-The system shall calculate average order value for each
-analyzed period.
+**FR-010** DecisionAI shall support comparison between a baseline period and a comparison period.
 
-### 9.3 Dimensional Analysis
+**FR-011** DecisionAI shall calculate absolute revenue change.
 
-**FR-010**  
-The system shall analyze revenue changes by product or product
-category.
+**FR-012** DecisionAI shall calculate percentage revenue change when the baseline supports a meaningful percentage comparison.
 
-**FR-011**  
-The system shall analyze revenue changes by region.
+**FR-013** DecisionAI shall calculate order volume for supported periods.
 
-**FR-012**  
-The system shall analyze revenue changes by customer segment.
+**FR-014** DecisionAI shall calculate average order value using a documented definition.
 
-**FR-013**  
-The system shall analyze revenue changes by sales channel when
-the required data is available.
+**FR-015** DecisionAI shall aggregate revenue by supported analytical dimensions.
 
-**FR-014**  
-The system shall analyze the relationship between discounts and
-observed revenue performance when the required data is
-available.
+**FR-016** DecisionAI shall calculate observed contribution to revenue change by supported dimensions.
 
-### 9.4 Contributor Identification
+**FR-017** DecisionAI shall rank major observed contributors using deterministic evidence.
 
-**FR-015**  
-The system shall identify and rank the largest observed
-contributors to the revenue change across supported dimensions.
+**FR-018** Contributor outputs shall avoid presenting association or contribution as established causality.
 
-**FR-016**  
-The system shall provide the quantitative evidence used to rank
-each contributor.
+### Natural Language and AI Interpretation
 
-**FR-017**  
-The system shall distinguish observed contribution or
-association from proven causal relationships.
+**FR-019** DecisionAI shall accept supported analytical questions expressed in natural language.
 
-### 9.5 Natural-Language Interaction
+**FR-020** DecisionAI shall map supported questions to controlled analytical capabilities.
 
-**FR-018**  
-The system shall accept supported analytical questions in
-natural language.
+**FR-021** DecisionAI shall provide AI interpretation using structured analytical evidence rather than relying on the model to recreate authoritative calculations.
 
-**FR-019**  
-The system shall map supported user questions to an appropriate
-analytical workflow.
+**FR-022** AI-generated application output shall be validated against required output structure.
 
-**FR-020**  
-The system shall identify when a question is outside the
-supported MVP scope rather than silently inventing an analysis.
+**FR-023** DecisionAI shall detect or prevent unsupported numerical claims where practical.
 
-### 9.6 AI-Assisted Interpretation
+**FR-024** DecisionAI shall communicate important analytical limitations and uncertainty.
 
-**FR-021**  
-The AI layer shall interpret structured analytical results and
-produce a concise explanation of the main findings.
+### Final Output and Human Control
 
-**FR-022**  
-The AI layer shall use analytical results produced by approved
-tools as the primary evidence for numerical claims.
+**FR-025** DecisionAI shall provide a final response containing deterministic findings, evidence, major contributors, interpretation, and limitations where available.
 
-**FR-023**  
-The AI layer shall not replace deterministic calculations with
-unsupported free-form numerical reasoning when an approved
-analytical tool is available.
-
-### 9.7 Evidence and Human Review
-
-**FR-024**  
-The system shall expose the main calculations and evidence
-supporting important findings.
-
-**FR-025**  
-The system shall allow the user to review analytical evidence
-before treating important findings as accepted conclusions.
-
-**FR-026**  
-The system shall communicate relevant limitations or missing
-evidence when the available data does not justify a strong
-conclusion.
+**FR-026** DecisionAI shall preserve human review before important business decisions or high-impact external actions.
 
 ## 10. Non-Functional Requirements
 
-The non-functional requirements define how DecisionAI should
-behave while performing the capabilities described in the
-functional requirements.
+**NFR-001 Reliability:** Deterministic calculations should be reproducible for the same validated input.
 
-### 10.1 Reliability
+**NFR-002 Testability:** Core analytical capabilities should be testable without requiring UI, network, or live AI-provider access.
 
-**NFR-001**  
-The system should fail explicitly rather than silently produce
-unsupported analytical results when required data, tools, or
-services are unavailable.
+**NFR-003 Traceability:** Important conclusions should be traceable to structured analytical evidence.
 
-**NFR-002**  
-Deterministic analytical calculations should produce
-reproducible results when executed against the same validated
-input data and configuration.
+**NFR-004 Graceful Degradation:** If optional AI interpretation fails after successful deterministic analysis, the system should be able to return reliable analytical evidence with an explicit notice.
 
-**NFR-003**  
-The system should degrade gracefully when an AI service or
-optional analytical component is unavailable.
+**NFR-005 Explicit Failure:** Critical data or analytical failures should not be silently ignored.
 
-### 10.2 Traceability and Explainability
+**NFR-006 Separation of Concerns:** Presentation, analytics, AI integration, persistence, and evaluation responsibilities should remain separated.
 
-**NFR-004**  
-Important analytical findings should be traceable to the
-calculations, tools, and source data used to produce them.
+**NFR-007 Replaceability:** External AI-provider integration should be isolated enough to permit future evolution when justified.
 
-**NFR-005**  
-The system should preserve sufficient execution information to
-allow developers or analysts to understand how an analysis was
-produced.
+**NFR-008 Security:** Secrets must not be committed to source control or exposed unnecessarily.
 
-### 10.3 Performance
+**NFR-009 Least Privilege:** Components should receive only the capabilities and permissions required for their responsibilities.
 
-**NFR-006**  
-The MVP should provide an interactive user experience with
-acceptable response times for the supported dataset sizes and
-analytical workflows.
+**NFR-010 Input Validation:** User input, datasets, AI output, and tool requests should be validated at relevant trust boundaries.
 
-**NFR-007**  
-Latency should be measured separately for deterministic
-analysis, AI-model calls, and end-to-end requests so that
-performance bottlenecks can be identified.
+**NFR-011 Observability:** Important workflow steps, failures, latency, model usage, and tool activity should become observable where practical.
 
-### 10.4 Security and Privacy
+**NFR-012 Evaluation:** AI behavior should be measurable using versioned evaluation cases.
 
-**NFR-008**  
-API keys, credentials, and other secrets must not be stored in
-the source-code repository.
+**NFR-013 Regression Protection:** Important discovered failures should become tests or evaluation cases when practical.
 
-**NFR-009**  
-Input data should be validated before it is processed by
-analytical or AI components.
+**NFR-014 Maintainability:** The initial architecture should favor clear modules and limited coupling over speculative complexity.
 
-**NFR-010**  
-The system should minimize unnecessary exposure of business
-data to external AI services.
+**NFR-015 Simplicity:** The MVP should avoid distributed infrastructure or agentic complexity unless requirements or measured evidence justify it.
 
-**NFR-011**  
-The system should not allow an AI model to execute arbitrary
-tools or operations outside an explicitly approved set.
+**NFR-016 Cost Awareness:** AI-model usage should be designed with token usage, latency, and cost in mind.
 
-### 10.5 Maintainability
+**NFR-017 Performance:** Interactive MVP operations should complete within reasonable analyst-facing latency for supported local datasets.
 
-**NFR-012**  
-The application should separate data processing, analytical
-logic, AI integration, evaluation, and user-interface concerns
-so that components can evolve independently.
+**NFR-018 Privacy:** The system should minimize unnecessary exposure, logging, or persistence of business data.
 
-**NFR-013**  
-Critical analytical logic should be covered by automated tests.
+**NFR-019 Human Review:** Important findings and recommendations should remain reviewable by a human.
 
-**NFR-014**  
-Important architectural and product decisions should be
-documented so that future changes can be understood in context.
-
-### 10.6 Observability
-
-**NFR-015**  
-The system should record structured information about important
-analytical executions, including failures and tool usage.
-
-**NFR-016**  
-Observability data should support investigation of incorrect
-answers, performance problems, and evaluation regressions.
-
-### 10.7 Cost Efficiency
-
-**NFR-017**  
-The system should avoid unnecessary AI-model calls when a
-deterministic operation can answer the question reliably.
-
-**NFR-018**  
-AI usage, latency, and approximate execution cost should be
-measurable so that architectural trade-offs can be evaluated.
-
-### 10.8 Human Oversight
-
-**NFR-019**  
-Important business conclusions should remain reviewable by a
-human user.
-
-**NFR-020**  
-The system should communicate uncertainty, missing evidence, or
-unsupported conclusions instead of presenting them as certain.
+**NFR-020 Documentation:** Product behavior, analytical definitions, limitations, and important architectural decisions should be documented.
 
 ## 11. Input Data
 
-The initial version of DecisionAI will operate on structured
-business data designed to support the revenue-performance
-analysis defined by the Core Question.
+The initial MVP uses three structured datasets.
 
-The MVP will initially use synthetic datasets so that the data
-can be safely published, controlled, and designed with known
-analytical scenarios for testing and evaluation.
+### `orders.csv`
 
-### 11.1 Orders Dataset
-
-The primary dataset will contain transactional order data.
-
-Initial fields may include:
+Required fields:
 
 - `order_id`
 - `customer_id`
@@ -659,15 +283,9 @@ Initial fields may include:
 - `discount`
 - `sales_channel`
 
-The fields required to calculate revenue must be present before
-a revenue analysis can be performed.
+### `customers.csv`
 
-### 11.2 Customers Dataset
-
-The customer dataset will provide attributes used to analyze
-business performance across customer-related dimensions.
-
-Initial fields may include:
+Required fields:
 
 - `customer_id`
 - `signup_date`
@@ -675,1306 +293,570 @@ Initial fields may include:
 - `region`
 - `acquisition_channel`
 
-### 11.3 Products Dataset
+### `products.csv`
 
-The product dataset will provide product attributes used for
-product and category analysis.
-
-Initial fields may include:
+Required fields:
 
 - `product_id`
 - `product_name`
 - `category`
 - `unit_cost`
 
-Fields that are not required for the initial revenue analysis
-may remain unused until later product capabilities justify
-their inclusion.
-
-### 11.4 Optional Marketing Dataset
-
-A marketing dataset may be introduced in a later iteration if
-the product expands into marketing-performance analysis.
-
-Potential fields include:
-
-- `date`
-- `channel`
-- `spend`
-- `impressions`
-- `clicks`
-
-This dataset is not required for the initial MVP.
-
-### 11.5 Dataset Relationships
-
-The initial data model will use identifiers to connect
-transactional data with customer and product attributes.
-
-- `orders.customer_id` should reference
-  `customers.customer_id`.
-- `orders.product_id` should reference
-  `products.product_id`.
-
-The data pipeline should identify invalid references before
-running analyses that depend on these relationships.
-
-### 11.6 Data Quality Expectations
-
-The system should evaluate the input data for issues including:
-
-- Missing required values.
-- Duplicate identifiers.
-- Invalid dates.
-- Invalid numerical values.
-- Negative or impossible quantities or prices.
-- Inconsistent categorical values.
-- Invalid customer or product references.
-- Missing data required for a requested analytical dimension.
-
-### 11.7 Data Design Principle
-
-The data model should include only the information needed to
-support the current analytical requirements and justified future
-experiments.
-
-New data sources should be introduced when they provide clear
-value for a defined product capability rather than simply to
-increase system complexity.
+An optional future dataset may include marketing or acquisition-spend information if justified by a later product question.
 
 ## 12. Expected Output
 
-DecisionAI should produce structured analytical outputs that
-allow users to understand both the main findings and the
-evidence supporting those findings.
+A successful analysis should be capable of producing:
 
-The output should clearly separate deterministic analytical
-results from AI-assisted interpretation.
+### Deterministic Summary
 
-### 12.1 Analysis Summary
+- Baseline revenue.
+- Comparison-period revenue.
+- Absolute change.
+- Percentage change where meaningful.
+- Order volume.
+- Average order value.
 
-The system should provide a concise summary of the analyzed
-business-performance change.
+### Contributor Analysis
 
-The summary should include:
+- Supported analytical dimension.
+- Dimension value.
+- Baseline metric.
+- Comparison metric.
+- Absolute contribution or change.
+- Contributor ranking.
 
-- The KPI being analyzed.
-- The compared periods.
-- The direction of the change.
-- The absolute change.
-- The percentage change.
+### Evidence
 
-### 12.2 Main Contributors
+The final result should expose enough structured evidence for a user or evaluation workflow to inspect the basis of the conclusion.
 
-The system should present the most relevant observed
-contributors to the KPI change.
+### AI Interpretation
 
-Each contributor should include, when available:
+AI-assisted output may include:
 
-- The analyzed dimension.
-- The dimension value.
-- The observed change.
-- The estimated contribution to the overall KPI change.
-- The evidence supporting the ranking.
+- Concise summary.
+- Important investigation priorities.
+- Explanation of observed evidence.
+- Limitations.
+- Uncertainty notes.
 
-### 12.3 Supporting Evidence
+### Final Response
 
-Important findings should be accompanied by the analytical
-evidence used to produce them.
+The final response should clearly separate calculated facts from AI-assisted interpretation.
 
-The system should make it possible to inspect:
-
-- Relevant calculations.
-- Aggregated metrics.
-- Compared values.
-- Analytical dimensions.
-- Tools or analytical operations used.
-
-### 12.4 AI-Assisted Interpretation
-
-The AI layer may provide a natural-language interpretation of
-the structured analytical results.
-
-The interpretation should:
-
-- Remain consistent with the analytical evidence.
-- Avoid introducing unsupported numerical claims.
-- Distinguish observed patterns from causal conclusions.
-- Highlight the most relevant findings.
-- Explain important limitations when evidence is incomplete.
-
-### 12.5 Recommended Investigation
-
-The system may recommend which areas deserve further
-investigation based on the available evidence.
-
-These recommendations should be framed as investigation
-priorities rather than autonomous business decisions.
-
-### 12.6 Limitations and Uncertainty
-
-The output should communicate relevant limitations, including:
-
-- Missing data.
-- Unsupported analytical dimensions.
-- Data-quality problems.
-- Insufficient evidence.
-- Uncertainty in model-based predictions.
-- The difference between observed contribution and proven
-  causality.
-
-### 12.7 Output Design Principle
-
-DecisionAI should produce outputs that are useful to humans
-while remaining structured enough to support automated testing,
-evaluation, APIs, and future agentic workflows.
 ## 13. Success Metrics
 
-DecisionAI should be evaluated across AI quality, system
-performance, and product value.
+Product success should be evaluated using measurable hypotheses rather than only subjective impressions.
 
-Success should not be defined only by whether the system
-produces a plausible natural-language answer.
+Potential metrics include:
 
-### 13.1 AI Quality Metrics
+- Numerical correctness of deterministic analytics.
+- Percentage of evaluation cases with correct major contributor identification.
+- Rate of unsupported numerical claims in AI output.
+- Rate of unsupported causal claims.
+- Human usefulness ratings.
+- Time required to answer the core analytical question.
+- Latency per analysis.
+- AI-model cost per analysis.
+- Regression failure rate.
+- Percentage of results with traceable supporting evidence.
 
-Candidate AI-quality metrics include:
-
-- Numerical correctness.
-- Correct analytical-tool selection.
-- Correct identification of relevant contributors.
-- Agreement between generated findings and analytical evidence.
-- Frequency of unsupported or hallucinated claims.
-- Correct communication of uncertainty and limitations.
-- Quality of contributor prioritization.
-- Consistency across repeated evaluation cases.
-
-### 13.2 System Performance Metrics
-
-Candidate system metrics include:
-
-- End-to-end latency.
-- Deterministic-analysis latency.
-- AI-model latency.
-- Request failure rate.
-- Tool execution failure rate.
-- Number of AI-model calls per analysis.
-- Token usage.
-- Approximate cost per completed analysis.
-
-### 13.3 Product Metrics
-
-Candidate product metrics include:
-
-- Time-to-insight.
-- Percentage of supported analytical questions completed
-  successfully.
-- Manual analytical effort required.
-- User-reported usefulness.
-- Percentage of findings accepted after human review.
-- Frequency of repeated product use during evaluation.
-
-### 13.4 Initial North-Star Metric
-
-An initial candidate north-star metric is:
-
-> The percentage of supported business questions that produce
-> a correct, evidence-backed, and useful analytical result.
-
-The definition of "correct", "evidence-backed", and "useful"
-will be made explicit through the evaluation framework.
-
-### 13.5 Metric-Setting Principle
-
-Initial success metrics should be measured before strict target
-thresholds are defined.
-
-The project should first establish baselines, identify failure
-patterns, and then define evidence-based targets for future
-iterations rather than selecting arbitrary performance goals.
+Initial targets may evolve after baseline measurements exist.
 
 ## 14. Evaluation Strategy
 
-DecisionAI will use evaluation-driven development to measure
-system quality and guide future iterations.
+DecisionAI should use evaluation-driven development.
 
-The evaluation strategy will combine deterministic evaluations,
-LLM-based evaluation where appropriate, and human review.
+The evaluation strategy should combine:
 
-### 14.1 Deterministic Evaluations
+### Deterministic Evaluation
 
-Code-based evaluations should be used whenever the expected
-result can be defined objectively.
-
-Initial deterministic evaluations should cover:
+Use exact or tolerance-based comparisons for:
 
 - Revenue calculations.
-- Revenue growth calculations.
-- Order-volume calculations.
-- Average order value.
-- Data validation.
-- Expected analytical dimensions.
-- Contributor calculations.
-- Structured-output validity.
-- Supported versus unsupported requests.
+- KPI changes.
+- Aggregations.
+- Contributor values.
+- Validation outcomes.
+- Structured contracts.
 
-### 14.2 LLM-Based Evaluations
+### AI Behavioral Evaluation
 
-LLM-as-a-judge evaluations may be used for output qualities that
-are difficult to evaluate entirely through deterministic rules.
+Evaluate:
 
-Potential evaluation criteria include:
+- Consistency with evidence.
+- Unsupported numerical claims.
+- Unsupported causal claims.
+- Relevance.
+- Investigation prioritization.
+- Clarity.
+- Appropriate limitations.
 
-- Consistency between the explanation and analytical evidence.
-- Quality of uncertainty communication.
-- Whether important findings are clearly prioritized.
-- Whether the answer avoids unsupported causal claims.
-- Clarity and usefulness of generated explanations.
+### LLM-as-a-Judge
 
-LLM-based evaluators should themselves be periodically reviewed
-against human judgments because their outputs are also
-probabilistic.
+Model-based evaluation may be used for qualitative criteria that are difficult to score deterministically.
 
-### 14.3 Human Review
+LLM judges should be periodically calibrated against human review.
 
-Human evaluation should be used for product qualities that
-require business or user judgment.
+### Human Evaluation
 
-Human reviewers may evaluate:
+Human reviewers may assess:
 
-- Usefulness of the analysis.
-- Clarity of the explanation.
-- Relevance of investigation priorities.
-- Trust in the supporting evidence.
-- Whether the output helps reduce analytical effort.
+- Usefulness.
+- Clarity.
+- Trustworthiness.
+- Relevance.
+- Investigation quality.
 
-### 14.4 Evaluation Dataset
+### Versioned Evaluation Dataset
 
-The project should maintain a versioned evaluation dataset
-containing representative analytical questions and expected
-behaviors.
+Evaluation cases should be reproducible and version controlled.
 
-Each evaluation case may define:
+Important discovered failures should become regression cases.
 
-- User question.
-- Input dataset or scenario.
-- Expected analytical workflow.
-- Expected tools.
-- Expected numerical facts.
-- Expected contributors.
-- Known limitations.
-- Expected output characteristics.
-
-The initial evaluation dataset should begin with a small number
-of high-quality cases and expand as new failure modes are
-discovered.
-
-### 14.5 Synthetic Ground Truth
-
-Synthetic business data should include controlled analytical
-scenarios with known expected outcomes.
-
-These scenarios will make it possible to evaluate whether
-DecisionAI correctly identifies known KPI changes and
-contributors rather than relying only on subjective assessment.
-
-### 14.6 Regression Evaluation
-
-When a meaningful system failure is discovered, a corresponding
-evaluation case should be added whenever practical.
-
-Future changes should run against existing evaluation cases to
-detect regressions in previously working behavior.
-
-### 14.7 Evaluation Improvement Loop
-
-The project will follow an iterative process:
-
-1. Build or modify a capability.
-2. Run evaluations.
-3. Inspect outputs and execution traces.
-4. Classify important errors.
-5. Identify likely causes.
-6. Implement a targeted improvement.
-7. Run the evaluation suite again.
-8. Record the result and decide the next iteration.
-
-Evaluation should guide development rather than being treated
-as a final testing step after the system has already been built.
 ## 15. Risks
 
-DecisionAI introduces technical, product, data, and operational
-risks that should be considered throughout development.
+### Hallucination Risk
 
-The project should identify important risks early and reduce
-them through system design, validation, evaluation, and human
-oversight.
+The AI model may produce unsupported claims or numbers.
 
-### 15.1 Hallucination Risk
+Mitigation:
 
-The AI layer may generate statements that are plausible but not
-supported by analytical evidence.
+- Ground interpretation in structured evidence.
+- Validate structured output.
+- Use deterministic calculations as the numerical source of truth.
+- Add regression cases for discovered failures.
 
-Mitigation should include:
+### Numerical Error Risk
 
-- Grounding generated explanations in structured tool outputs.
-- Evaluating unsupported claims.
-- Exposing supporting evidence.
-- Requiring human review for important conclusions.
+Incorrect calculations could mislead users.
 
-### 15.2 Numerical Error Risk
+Mitigation:
 
-Language models may produce incorrect numerical reasoning.
+- Deterministic implementation.
+- Unit tests.
+- Controlled evaluation datasets.
 
-Deterministic calculations should therefore be performed by
-approved Python or SQL-based analytical tools whenever
-possible.
+### Data-Quality Risk
 
-### 15.3 Data Quality Risk
+Invalid or incomplete data may create unreliable analysis.
 
-Missing, duplicated, inconsistent, or invalid data may produce
-incorrect or misleading analyses.
+Mitigation:
 
-Input data should be validated before analytical workflows are
-executed.
+- Schema validation.
+- Business-rule validation.
+- Referential-integrity checks.
+- Explicit errors and warnings.
 
-### 15.4 Causality Risk
+### Causality Risk
 
-The system may incorrectly present correlation or observed
-contribution as proven causality.
+Observed contributors may be interpreted incorrectly as causal effects.
 
-DecisionAI should explicitly distinguish descriptive or
-diagnostic findings from causal conclusions.
+Mitigation:
 
-### 15.5 Prompt Injection and Tool Misuse
+- Use contribution and association language.
+- Communicate limitations.
+- Avoid causal claims without appropriate causal methodology.
 
-Natural-language inputs or uploaded content may attempt to
-manipulate the AI layer into performing unsupported actions.
+### Prompt-Injection and Tool-Misuse Risk
 
-The system should restrict tool access to an approved set and
-validate tool arguments before execution.
+Untrusted content may attempt to influence AI behavior or trigger unsafe actions.
 
-### 15.6 External Service Dependency
+Mitigation:
 
-The system may depend on external AI services that can become
-unavailable, slow, or change behavior.
+- Separate instructions from data.
+- Tool allowlists.
+- Argument validation.
+- Least privilege.
+- No unrestricted shell or database execution.
 
-The architecture should support timeouts, retries, explicit
-failure handling, and graceful degradation where appropriate.
+### External-Service Risk
 
-### 15.7 Cost and Latency Risk
+AI providers may fail, change behavior, or become unavailable.
 
-Complex AI workflows may increase model usage, latency, and
-operational cost without producing sufficient improvements in
-quality.
+Mitigation:
 
-Architectural complexity should therefore be justified through
-measurement and evaluation.
+- Provider isolation.
+- Error classification.
+- Timeouts and selective retries.
+- Graceful degradation when reliable deterministic results remain.
 
-### 15.8 Privacy and Data Exposure Risk
+### Cost and Latency Risk
 
-Future use with real business data may introduce privacy,
-confidentiality, and governance requirements.
+Uncontrolled AI workflows may become slow or expensive.
 
-The system should minimize unnecessary exposure of business
-data to external services and avoid storing sensitive
-information without a defined need.
+Mitigation:
 
-### 15.9 Over-Automation Risk
+- Measure token usage and latency.
+- Prefer minimal useful context.
+- Add complexity only when evaluation demonstrates value.
 
-Automatically converting analytical findings into business
-actions may create unacceptable operational or business risk.
+### Privacy Risk
 
-The initial product should remain a decision-support system
-with human validation of important conclusions.
+Business data may contain sensitive information.
 
-### 15.10 Scope-Creep Risk
+Mitigation:
 
-Adding technologies or features that are not required to
-validate the Core Question may delay learning and increase
-system complexity.
+- Data minimization.
+- Secret isolation.
+- Controlled logging.
+- Avoid unnecessary persistence.
 
-New capabilities should be introduced only when they address a
-defined user need, mitigate an important risk, or improve a
-measured product outcome.
+### Overautomation Risk
+
+Users may over-trust AI recommendations.
+
+Mitigation:
+
+- Human review.
+- Evidence visibility.
+- Explicit limitations.
+- Decision-support positioning.
+
+### Scope-Creep Risk
+
+The project may expand into unrelated AI or enterprise capabilities.
+
+Mitigation:
+
+- Keep the MVP focused on the core revenue-performance question.
+- Use explicit out-of-scope boundaries.
+- Require evidence before adding architectural complexity.
 
 ## 16. Constraints
 
-DecisionAI will be developed under a defined set of product,
-technical, data, budget, and learning constraints.
+The initial project has the following constraints:
 
-These constraints are intended to reduce unnecessary complexity
-and keep architectural decisions aligned with the current stage
-of the project.
+- Revenue-performance analysis is the MVP focus.
+- Initial data is synthetic.
+- Python is the primary implementation language.
+- Gemini is the initial AI provider.
+- Gemini-specific behavior should remain isolated behind an AI boundary.
+- Development should remain budget conscious.
+- The initial environment is Windows with PowerShell, VS Code, Git, and GitHub.
+- The project is developed by one human engineer with AI assistance.
+- The project is intentionally learning-oriented and should expose engineering reasoning rather than hiding it behind excessive automation.
+- The initial deployment should avoid unnecessary distributed infrastructure.
+- Multi-agent behavior is not required for the initial MVP.
 
-### 16.1 Product Scope Constraint
-
-The initial MVP will focus on revenue-performance analysis and
-the Core Question defined in this specification.
-
-Support for unrelated business domains should not be added
-until the initial use case has been implemented and evaluated.
-
-### 16.2 Data Constraint
-
-The initial project will use synthetic structured business data.
-
-This allows the project to:
-
-- Avoid exposing real business or personal information.
-- Create controlled analytical scenarios.
-- Define known expected outcomes for testing and evaluation.
-- Publish example datasets safely as part of the portfolio.
-
-The limitations of synthetic data should be acknowledged when
-interpreting product results.
-
-### 16.3 Technology Constraint
-
-The project will initially use a Python-centered technology
-stack.
-
-Expected technologies include:
-
-- Python.
-- Pandas and NumPy.
-- Scikit-learn where machine learning is justified.
-- FastAPI.
-- Streamlit.
-- SQLite for the initial persistence layer.
-- Pytest for automated testing.
-- Gemini as the initial AI-model provider.
-
-Additional technologies should be introduced only when a
-defined product or engineering requirement justifies them.
-
-### 16.4 AI Provider Constraint
-
-Gemini will be the initial language-model provider used by the
-project.
-
-The application architecture should avoid unnecessary coupling
-between core analytical logic and provider-specific AI code so
-that model integrations can evolve independently.
-
-### 16.5 Budget Constraint
-
-The project should remain practical to develop and operate as an
-individual portfolio project.
-
-The architecture should therefore avoid unnecessary model calls,
-infrastructure, and managed services that increase cost without
-clear product value.
-
-### 16.6 Development Environment Constraint
-
-The project will initially be developed using:
-
-- Windows.
-- PowerShell.
-- VS Code.
-- Python virtual environments.
-- Git.
-- GitHub.
-
-Project commands and documentation should remain reproducible in
-the documented development environment.
-
-### 16.7 Team Constraint
-
-The project is initially developed by one human engineer with
-AI-assisted development tools.
-
-Architectural complexity should reflect this team size and
-should not assume the organizational needs of a large
-engineering organization unless future project requirements
-change.
-
-### 16.8 Learning Constraint
-
-DecisionAI is both a product-development project and an
-AI-engineering learning project.
-
-Development should therefore prioritize understanding,
-experimentation, verification, and documentation rather than
-maximizing implementation speed.
-
-Each major phase should include:
-
-- Theory.
-- Design decisions.
-- Implementation.
-- Testing or evaluation.
-- Error analysis where applicable.
-- Documentation.
-- Reflection and lessons learned.
 ## 17. Security and Privacy
 
-Security and privacy requirements should be considered from the
-beginning of DecisionAI development rather than added only after
-the system is deployed.
+DecisionAI should treat the following as untrusted until validated:
 
-The initial MVP will use synthetic data, but the architecture
-should establish practices that can later support safer use with
-real business data.
+- User input.
+- Uploaded or imported datasets.
+- AI-model output.
+- AI-generated tool requests.
+- Future external integrations.
 
-### 17.1 Secret Management
+Security principles include:
 
-API keys, credentials, and other secrets must not be committed
-to the source-code repository.
+- Least privilege.
+- Explicit validation.
+- Secrets outside source control.
+- Tool allowlists.
+- No unrestricted OS execution from the model.
+- Controlled database access.
+- Controlled filesystem access.
+- Parameterized database queries where relevant.
+- Sensitive-log minimization.
+- Human control over high-impact actions.
 
-Secrets should be supplied through environment variables or an
-appropriate secret-management mechanism.
-
-The repository may include example configuration files that
-document required variables without containing real credentials.
-
-### 17.2 Data Minimization
-
-DecisionAI should minimize the amount of raw business data sent
-to external AI services.
-
-When possible, deterministic tools should transform raw data
-into the aggregated evidence required by the AI layer before
-model invocation.
-
-### 17.3 Input Validation
-
-Uploaded files and user-provided data should be validated before
-processing.
-
-Validation should consider:
-
-- Supported file types.
-- File size.
-- Required schema.
-- Data types.
-- Missing required fields.
-- Invalid or malformed records.
-- Unexpected values that could affect analytical reliability.
-
-### 17.4 Prompt Injection
-
-Text contained in user input, uploaded files, or retrieved data
-should be treated as untrusted content.
-
-The system should clearly separate trusted application
-instructions from user content and data supplied to the AI
-model.
-
-### 17.5 Tool Access Control
-
-The AI layer should only be able to request tools from an
-explicitly approved tool registry.
-
-Tool calls should be validated before execution, including:
-
-- Tool identity.
-- Input schema.
-- Argument types.
-- Allowed operations.
-- Relevant resource limits.
-
-The AI model should not receive unrestricted operating-system,
-file-system, database, or network access.
-
-### 17.6 Logging and Observability
-
-Logs and execution traces should contain enough information to
-debug system behavior without unnecessarily exposing secrets or
-sensitive business data.
-
-Secrets must never be written to application logs.
-
-### 17.7 External AI Services
-
-When real business data is introduced in future versions, the
-project should evaluate what information is transmitted to
-external AI providers and whether that transmission is
-appropriate for the data involved.
-
-### 17.8 Data Governance
-
-Future versions using real data may require explicit policies
-for:
-
-- Data access.
-- Data retention.
-- Data deletion.
-- Personal or confidential information.
-- Data ownership.
-- Auditability.
-- Regulatory or contractual requirements.
-
-These requirements are outside the initial synthetic-data MVP
-but should be considered before real production data is used.
-
-### 17.9 Human Oversight
-
-The initial system should not autonomously execute high-impact
-business actions based on generated findings.
-
-Important conclusions and subsequent actions should remain
-subject to human review.
+Real sensitive business data should not be introduced until appropriate retention, deletion, governance, and access policies exist.
 
 ## 18. Out of Scope
 
-The following capabilities are intentionally outside the scope
-of the initial DecisionAI MVP.
+The initial MVP does not include:
 
-These exclusions are intended to keep the first product version
-focused on validating the Core Question and the primary product
-hypothesis before additional complexity is introduced.
-
-### 18.1 Autonomous Business Actions
-
-The MVP will not automatically execute high-impact business
-actions such as:
-
-- Changing prices.
-- Stopping marketing campaigns.
-- Modifying operational systems.
-- Moving financial resources.
-- Making employment-related decisions.
-
-DecisionAI will initially remain a decision-support system.
-
-### 18.2 Advanced Predictive Capabilities
-
-Advanced predictive capabilities are outside the initial MVP,
-including:
-
-- Customer churn prediction.
-- Advanced revenue forecasting.
-- Advanced anomaly prediction.
-- Prescriptive optimization.
-
-These capabilities may be introduced in later phases when they
-support a defined product need and can be evaluated properly.
-
-### 18.3 Causal Inference
-
-The MVP will not claim to perform formal causal inference.
-
-The initial product will focus primarily on descriptive and
-diagnostic analysis of observed contributors and associations.
-
-### 18.4 Complex Multi-Agent Architectures
-
-The initial MVP will not require a complex multi-agent system.
-
-Agentic architectures should only be introduced when evaluation
-shows that a simpler workflow is insufficient.
-
-### 18.5 Retrieval Infrastructure Without a Defined Need
-
-The MVP will not introduce vector databases, knowledge graphs,
-or other retrieval infrastructure unless later requirements or
-experiments demonstrate a clear need.
-
-### 18.6 Model Fine-Tuning
-
-Fine-tuning language models is outside the initial MVP.
-
-Prompting, structured outputs, tools, grounding, and evaluation
-should be explored before model customization is considered.
-
-### 18.7 Enterprise Platform Capabilities
-
-The initial project will not include:
-
-- Enterprise identity management.
-- Advanced role-based access control.
-- Multi-tenant enterprise administration.
-- Large-scale distributed processing.
-- Kubernetes-based infrastructure.
-- High-availability multi-region deployment.
-
-These capabilities should only be considered if future scale or
-production requirements justify them.
-
-### 18.8 Additional Interaction Modalities
-
-The initial MVP will not include:
-
+- Autonomous external business actions.
+- Autonomous purchasing, pricing, staffing, or financial decisions.
+- Advanced causal inference.
+- Enterprise-grade identity and access management.
+- Kubernetes.
+- Distributed microservices.
+- Complex multi-agent systems without demonstrated need.
+- Fine-tuning foundation models.
+- Large RAG infrastructure without a defined requirement.
 - Voice interfaces.
-- Computer-use agents.
-- Mobile-native applications.
-- Autonomous browser interaction.
+- General computer-use automation.
+- Arbitrary business domains.
+- Advanced churn modeling as a core MVP capability.
+- Advanced forecasting as a core MVP capability.
+- Direct integrations with CRM, ERP, data warehouses, messaging, or external action systems.
 
-### 18.9 Broad Domain Coverage
-
-The initial version will not attempt to answer arbitrary
-business questions across every business domain.
-
-The MVP will remain focused on revenue-performance
-investigation until that use case is implemented and evaluated
-successfully.
-
-### 18.10 Scope Principle
-
-A capability that is technically interesting should not be
-added solely because it demonstrates a new technology.
-
-New functionality should be connected to a defined user need,
-product metric, engineering limitation, evaluation result, or
-validated future opportunity.
+These capabilities may be reconsidered only when product or evaluation evidence justifies them.
 
 ## 19. Trade-offs
 
-DecisionAI will require explicit trade-offs between product
-capability, system complexity, reliability, cost, latency, and
-development speed.
+### Simplicity vs Capacity
 
-These trade-offs should be documented rather than hidden inside
-implementation decisions.
+The MVP favors simple local architecture over maximum production scale.
 
-### 19.1 Simplicity vs Capability
+### Deterministic Logic vs LLM Flexibility
 
-The initial MVP should prefer the simplest architecture that can
-reliably support the Core Question.
+Deterministic code is preferred for exact calculations.
 
-Additional architectural complexity should be introduced when
-evaluation demonstrates that the simpler approach is
-insufficient.
+LLMs are preferred for language understanding, orchestration, and interpretation where their flexibility adds value.
 
-### 19.2 Deterministic Code vs AI Reasoning
+### Single Workflow vs Multi-Agent
 
-Deterministic tools should be preferred for calculations and
-operations where exact, reproducible behavior is required.
+The initial design favors simple orchestration.
 
-AI models should be used where their flexibility provides clear
-value, such as natural-language understanding, planning, and
-interpretation.
+Multi-agent systems should require measured evidence that simpler approaches are insufficient.
 
-### 19.3 Single Workflow vs Multi-Agent Architecture
+### SQLite vs PostgreSQL
 
-A simple workflow or single orchestrator should be evaluated
-before introducing a multi-agent architecture.
+SQLite reduces operational complexity for the local MVP.
 
-Multi-agent systems may provide specialization but can also
-increase:
+PostgreSQL may become appropriate if concurrency, deployment, or production requirements justify it.
 
-- Cost.
-- Latency.
-- Coordination complexity.
-- Failure modes.
-- Debugging difficulty.
-- Evaluation complexity.
+### Quality vs Cost vs Latency
 
-### 19.4 SQLite vs More Complex Persistence
+AI-model changes should be evaluated across all three dimensions rather than optimizing only output quality.
 
-SQLite is appropriate for the initial local MVP because it
-reduces setup and operational complexity.
+### Raw Context vs Structured Evidence
 
-A more capable database such as PostgreSQL should be considered
-when requirements such as concurrency, scale, or production
-operation justify the additional complexity.
+The system should prefer the minimum useful structured evidence over sending large raw datasets to the model.
 
-### 19.5 Quality vs Cost and Latency
+### Development Speed vs Production Hardening
 
-Improvements in AI quality should be evaluated against their
-impact on:
+The MVP should move incrementally while preserving important boundaries, tests, and security practices.
 
-- Model usage.
-- Token consumption.
-- End-to-end latency.
-- Operational cost.
-- System complexity.
+### Autonomy vs Human Control
 
-A more expensive workflow should not automatically be considered
-better unless the measured quality improvement provides
-sufficient value.
+DecisionAI favors decision support and evidence over autonomous high-impact actions.
 
-### 19.6 Raw Data Context vs Structured Evidence
+### Breadth vs Evaluation Depth
 
-The AI layer should receive the minimum context required to
-perform its task reliably.
-
-Where possible, raw business data should be transformed into
-structured analytical evidence before being passed to the AI
-model.
-
-This reduces unnecessary data exposure, context usage, and
-model cost while improving traceability.
-
-### 19.7 Development Speed vs Production Robustness
-
-The MVP should optimize for learning speed while maintaining
-basic engineering quality.
-
-Production-grade infrastructure should be introduced when
-product maturity and usage justify the additional investment.
-
-### 19.8 Autonomy vs Human Control
-
-Higher levels of AI autonomy may reduce manual work but increase
-the potential impact of incorrect behavior.
-
-The initial system should therefore prioritize human review for
-important findings and business decisions.
-
-### 19.9 Feature Breadth vs Evaluation Depth
-
-The project should prioritize reliable and well-evaluated core
-capabilities over a large number of lightly tested features.
-
-New capabilities should not reduce the project's ability to
-understand, evaluate, and improve existing system behavior.
-
-### 19.10 Trade-off Principle
-
-Architectural and product decisions should be evaluated in the
-context of the current user problem, project stage, constraints,
-and measured results.
-
-The project should avoid treating any technology or
-architecture as universally superior outside that context.
+The initial product should support fewer capabilities with strong evaluation rather than many weakly tested features.
 
 ## 20. User Feedback Plan
 
-DecisionAI should use structured user feedback to validate
-whether the product solves the intended analytical problem and
-to guide future product iterations.
+User feedback should be collected through several mechanisms.
 
-Feedback should combine qualitative user input, observed
-behavior, and measurable product outcomes.
+### Interviews
 
-### 20.1 User Interviews
+Talk with target users about:
 
-Potential users such as Business Analysts and Operations
-Managers may be interviewed to understand:
+- Current revenue-analysis workflow.
+- Main sources of analytical friction.
+- Trust requirements.
+- Evidence requirements.
+- Preferred output format.
 
-- Their current analytical workflow.
-- The tools they use.
-- The most time-consuming parts of KPI investigation.
-- What evidence they require before trusting an analytical
-  conclusion.
-- Which product capabilities would create the most value.
-- Which AI behaviors would reduce trust.
+### Task-Based Testing
 
-### 20.2 Task-Based User Testing
+Ask users to perform defined analytical tasks using DecisionAI and observe:
 
-Users should be given realistic analytical tasks and asked to
-use DecisionAI to complete them.
+- Time to insight.
+- Confusion points.
+- Missing information.
+- Trust behavior.
 
-Example tasks may include:
+### Manual vs DecisionAI Comparison
 
-- Investigating a revenue decline between two periods.
-- Identifying the largest contributors to a KPI change.
-- Reviewing evidence behind a generated conclusion.
-- Determining which business area deserves further
-  investigation.
+Compare:
 
-Observation should focus on:
-
-- Whether the user understands how to use the system.
-- Where the user becomes confused.
-- Whether the evidence is sufficient.
-- Whether the user trusts the generated interpretation.
-- Whether the workflow reduces manual analytical effort.
-
-### 20.3 Manual vs DecisionAI Comparison
-
-Where practical, selected analytical tasks should be completed
-using both:
-
-- The user's existing workflow.
-- The DecisionAI-assisted workflow.
-
-Potential comparison metrics include:
-
-- Time-to-insight.
-- Number of manual analytical steps.
-- Correctness of the final finding.
-- User confidence.
-- Amount of evidence reviewed.
-
-### 20.4 Output Feedback
-
-Users may rate DecisionAI outputs on dimensions such as:
-
-- Correctness.
-- Clarity.
-- Usefulness.
+- Time required.
+- Findings identified.
 - Evidence quality.
-- Trustworthiness.
-- Relevance of investigation priorities.
+- User confidence.
 
-### 20.5 Behavioral Feedback
+### Output Feedback
 
-Product usage should be observed in addition to explicit user
-comments.
+Collect explicit feedback such as:
 
-Useful signals may include:
+- Useful / not useful.
+- Correct / questionable.
+- Missing evidence.
+- Too verbose / too brief.
+- Wrong investigation priority.
 
-- Repeated questions.
-- Abandoned analyses.
-- Frequently inspected evidence.
-- Findings that users reject.
-- Common unsupported requests.
-- Repeated requests for capabilities outside the MVP.
+### Behavioral Signals
 
-### 20.6 Feedback Prioritization
+Future signals may include:
 
-User feedback should not automatically become a product
-requirement.
+- Which findings users inspect.
+- Which investigation priorities they accept or reject.
+- Whether users request additional evidence.
+- Whether they repeat analyses.
 
-Feedback should be evaluated according to:
+### Feedback Prioritization
+
+Feedback should be prioritized according to:
 
 - Frequency.
 - User impact.
-- Alignment with the Core Question.
-- Strategic product value.
-- Engineering effort.
-- Risk.
-- Evidence from product metrics and evaluations.
-
-### 20.7 Build-Loop Principle
-
-User feedback should feed directly into the product-development
-loop:
-
-1. Build a product capability.
-2. Observe real or representative usage.
-3. Collect qualitative and quantitative feedback.
-4. Identify important user problems or opportunities.
-5. Compare findings with product metrics and system evaluations.
-6. Select the highest-value improvement.
-7. Build the next iteration.
-8. Repeat the process.
+- Product alignment.
+- Implementation effort.
+- Reliability or security risk.
+- Supporting evidence.
 
 ## 21. Business Value
 
-DecisionAI is intended to create business value by reducing
-analytical friction between detecting a change in business
-performance and producing evidence that supports further
-investigation.
+Potential business value should be treated as a hypothesis to validate.
 
-The business case should remain evidence-based. Expected value
-should be treated as a hypothesis until product usage,
-evaluation, and operational cost are measured.
+Candidate benefits include:
 
-### 21.1 Analyst Productivity
+- Reduced analyst time spent on repetitive KPI investigation.
+- Faster time-to-insight.
+- More consistent analytical workflows.
+- Better traceability of AI-assisted conclusions.
+- Better reuse of analytical knowledge.
+- Reduced dependence on ad-hoc manual analysis.
 
-Potential value may come from reducing repetitive analytical
-work such as:
+Potential costs include:
 
-- Period comparison.
-- KPI calculation.
-- Dimensional analysis.
-- Contributor ranking.
-- Evidence preparation.
-- Initial result summarization.
-
-Reducing repetitive work may allow analysts to spend more time
-on higher-value investigation, experimentation, and business
-decision support.
-
-### 21.2 Faster Time-to-Insight
-
-DecisionAI may reduce the time between identifying a KPI change
-and obtaining useful analytical evidence.
-
-A shorter time-to-insight may help organizations investigate
-important business-performance changes more quickly.
-
-This benefit should be measured rather than assumed.
-
-### 21.3 Analytical Consistency
-
-DecisionAI may improve consistency across recurring
-investigations by applying defined analytical workflows,
-calculations, validation rules, and evidence requirements.
-
-The objective is not to eliminate analyst judgment but to make
-repetitive analytical steps more systematic.
-
-### 21.4 Knowledge Scaling
-
-Reusable analytical tools and workflows may help encode parts of
-an organization's analytical practices into a repeatable system.
-
-This may help less-experienced users follow stronger analytical
-processes while preserving human review for important
-interpretation and decisions.
-
-### 21.5 Cost of the System
-
-The business value of DecisionAI should be evaluated against
-its total operational and engineering cost.
-
-Relevant costs may include:
-
-- Development effort.
-- Maintenance effort.
 - AI-model usage.
-- Infrastructure.
+- Engineering and maintenance.
 - Evaluation.
-- Observability.
-- Security.
-- Data engineering.
+- Infrastructure.
+- Data preparation.
+- Human review.
 
-### 21.6 Unit-Economics Candidates
+Future unit-economics analysis may consider:
 
-Future product evaluation may estimate metrics such as:
+- Cost per analysis.
+- Analyst time saved.
+- AI cost per successful analytical task.
+- Infrastructure cost.
+- User adoption and repeated usage.
 
-- Cost per completed analysis.
-- AI-model cost per analysis.
-- Analyst time saved per supported task.
-- Cost per accepted analytical finding.
-- Value of reduced manual analytical effort.
-
-These metrics should only be interpreted after realistic usage
-data is available.
-
-### 21.7 Business-Value Principle
-
-The project should continue investing in capabilities when
-measured improvements in user outcomes, analytical quality, or
-operational efficiency justify the additional cost and
-complexity.
-
-Technical sophistication alone should not be treated as business
-value.
+Business-value claims should be validated with actual user behavior and measured outcomes.
 
 ## 22. MVP Acceptance Criteria
 
-The DecisionAI MVP should be considered complete only when the
-core revenue-performance use case can be executed reliably,
-evaluated systematically, and reviewed by a human user.
+The MVP should not be considered complete merely because a UI can produce an answer.
 
-Completion should be based on verifiable criteria rather than
-the presence of a working user interface or a plausible AI
-response.
+### Data
 
-### 22.1 Data Acceptance Criteria
+- Supported datasets can be loaded.
+- Required schemas are validated.
+- Important business rules are validated.
+- Referential-integrity errors are detected.
+- Invalid required data prevents unreliable analysis.
 
-The MVP should:
+### Deterministic Analytics
 
-- Load the supported datasets successfully.
-- Detect missing required fields.
-- Detect invalid core data types.
-- Identify critical data-quality problems before analysis.
-- Detect invalid customer or product references when relevant.
-- Prevent unreliable analysis when required data is missing or
-  invalid.
+- Revenue is calculated from documented inputs.
+- Baseline and comparison periods can be compared.
+- Absolute and percentage changes are produced correctly.
+- Supported dimensional aggregations are reproducible.
+- Contributor analysis is deterministic and tested.
 
-### 22.2 Deterministic Analytics Acceptance Criteria
+### Core Question
 
-The MVP should correctly implement and test:
+The system can produce an evidence-backed response to:
 
-- Revenue calculation.
-- Revenue comparison between periods.
-- Absolute revenue change.
-- Percentage revenue change.
-- Order volume.
-- Average order value.
-- Supported dimensional analyses.
-- Contributor calculations and ranking.
+> What is affecting revenue performance, and what should I investigate first?
 
-Critical deterministic analytical logic should be covered by
-automated tests.
+### Evidence
 
-### 22.3 Core-Question Acceptance Criteria
+- Important findings are traceable to structured evidence.
+- Contributor values are available for inspection.
+- Warnings and limitations are preserved.
 
-Using supported input data, the MVP should be able to answer:
+### AI Behavior
 
-> What is affecting revenue performance, and what should I
-> investigate first?
+- AI interpretation is grounded in deterministic evidence.
+- Gemini is not the numerical source of truth.
+- AI output follows a structured contract where practical.
+- Unsupported numerical and causal claims are evaluated.
 
-The answer should identify relevant contributors, prioritize
-them, and provide supporting evidence.
+### Evaluation
 
-### 22.4 Evidence Acceptance Criteria
+- A versioned evaluation dataset exists.
+- Deterministic evaluation cases exist.
+- AI behavioral evaluation exists.
+- Important regressions can be detected.
 
-Important findings should be traceable to:
+### Security
 
-- Analytical calculations.
-- Structured tool outputs.
-- Relevant input data.
-- The analytical workflow used.
+- Real secrets are not committed to Git.
+- Tool access is controlled.
+- Untrusted inputs cross validation boundaries.
+- AI output is not blindly trusted.
 
-The system should not present unsupported findings as established
-facts.
+### Observability
 
-### 22.5 AI Behavior Acceptance Criteria
+- Important workflow failures are visible.
+- AI-model calls can be measured where practical.
+- Latency and relevant usage metadata can be inspected.
 
-The AI layer should:
+### Documentation
 
-- Interpret supported analytical questions.
-- Use approved analytical tools and structured results.
-- Avoid replacing deterministic calculations with unsupported
-  numerical reasoning.
-- Avoid introducing unsupported numerical claims.
-- Communicate relevant limitations.
-- Distinguish observed contribution from proven causality.
-- Identify unsupported requests that fall outside the MVP scope.
+- Product behavior is documented.
+- Data definitions are documented.
+- Architecture is documented.
+- Important decisions are documented using ADRs.
 
-### 22.6 Evaluation Acceptance Criteria
+### Human Review
 
-The MVP should include:
-
-- A versioned evaluation dataset.
-- Deterministic evaluation cases.
-- Synthetic scenarios with known expected outcomes.
-- Evaluation of major AI-output behaviors.
-- Regression cases for important failures discovered during
-  development.
-- A documented process for error analysis and improvement.
-
-### 22.7 Security Acceptance Criteria
-
-The MVP should:
-
-- Keep secrets outside the source-code repository.
-- Use synthetic data for public portfolio examples.
-- Validate user-provided input.
-- Restrict AI access to approved tools.
-- Avoid unrestricted arbitrary code or system execution.
-- Avoid writing secrets to application logs.
-
-### 22.8 Observability Acceptance Criteria
-
-The MVP should record enough structured execution information
-to understand:
-
-- The user request.
-- The analytical workflow executed.
-- The tools used.
-- Relevant failures.
-- Major latency measurements.
-- Evaluation outcomes where applicable.
-
-### 22.9 Documentation Acceptance Criteria
-
-The repository should document:
-
-- The user problem.
-- Product scope.
-- Functional and non-functional requirements.
-- Architecture.
-- Data model.
-- Evaluation approach.
-- Security assumptions.
-- Known limitations.
-- Instructions for running and testing the application.
-
-### 22.10 Human-Review Acceptance Criteria
-
-Users should be able to inspect the main evidence supporting
-important findings before accepting the AI-assisted
-interpretation.
-
-The MVP should remain a decision-support system rather than an
-autonomous business-action system.
-
-### 22.11 MVP Completion Principle
-
-The MVP should be considered complete when the Core Question is
-answered reliably within the defined scope, the analytical
-evidence is traceable, major failure modes are evaluated, and
-the system provides enough transparency for human review.
-
-Additional features should not be required for MVP completion
-unless evaluation demonstrates that they are necessary for the
-Core Question.
+- Final outputs preserve human responsibility for important decisions.
+- The system does not autonomously execute high-impact business actions.
 
 ## 23. Open Questions
 
-The following questions remain intentionally open and should be
-resolved through implementation, evaluation, experimentation,
-and user feedback rather than assumption.
+The following questions remain intentionally open until implementation or evaluation produces enough evidence.
 
-### 23.1 Product Questions
+### Product
 
-- Does the Core Question represent a sufficiently valuable and
-  recurring analytical problem for the target user?
-- Which parts of the analytical workflow create the greatest
-  reduction in manual effort?
-- Which evidence do users need in order to trust DecisionAI?
-- How much explanation is useful before the output becomes too
-  detailed?
-- Do Business Analysts and Operations Managers require different
-  output views?
+- Which exact response format is most useful to analysts?
+- How much explanation should the default response include?
+- Which supported analytical questions should be added after the core revenue question?
 
-### 23.2 Data Questions
+### Data
 
-- Are the initial orders, customers, and products datasets
-  sufficient to support the Core Question?
-- Which additional business dimensions provide enough value to
-  justify expanding the data model?
-- How should real-world data-quality uncertainty be represented
-  to the user?
-- When should the project move from synthetic data to realistic
-  or real business data?
+- What dataset size should define the initial supported local operating range?
+- Which missing-value behaviors should be warnings versus errors?
+- Which real-world data-quality issues should be simulated after the clean baseline is stable?
 
-### 23.3 Analytical Questions
+### Analytics
 
-- What is the most useful and defensible method for ranking
-  contributors to a revenue change?
-- How should overlapping contributors across multiple dimensions
-  be interpreted?
-- Which anomaly-detection methods are useful for the MVP?
-- Which analyses should remain deterministic and which benefit
-  from machine learning?
+- What exact contributor methodology should be used for the first implementation?
+- How should contribution be normalized or ranked across dimensions?
+- How should zero-baseline percentage changes be communicated?
+- Which dimensions should be supported in the first release?
 
-### 23.4 AI and Grounding Questions
+### AI
 
-- What minimum context does the AI model require to interpret
-  analytical results reliably?
-- Should DecisionAI use a simple structured context, a semantic
-  layer, retrieval tools, or another grounding approach?
-- Which Gemini model and configuration provide the best
-  quality, latency, and cost trade-off for the supported tasks?
-- How should the system respond when the user's question is
-  ambiguous?
+- Which Gemini model configuration provides the best quality, latency, and cost trade-off?
+- What structured-output contract should the first interpreter use?
+- Which AI tasks should remain outside the MVP?
 
-### 23.5 Agentic Architecture Questions
+### Grounding
 
-- Is a simple orchestration workflow sufficient for the MVP?
-- Does a dedicated planning component improve tool selection?
-- Does a critic or review step measurably improve output quality?
-- At what point, if any, does a multi-agent architecture justify
-  its additional cost and complexity?
+- How much evidence is necessary for reliable interpretation?
+- Should raw rows ever be provided to the model, or only aggregated evidence?
+- Which context-selection strategy performs best in evaluation?
 
-### 23.6 Evaluation Questions
+### Tools and Agents
 
-- Which evaluation cases best represent real user behavior?
-- What initial baseline quality does the system achieve?
-- Which success thresholds should be adopted after baselines are
-  measured?
-- Which output characteristics can be evaluated deterministically
-  and which require human or LLM-based evaluation?
-- How strongly do automated evaluation results correlate with
-  human judgments of usefulness?
+- Which deterministic capabilities should become AI-callable tools?
+- When does dynamic tool selection outperform deterministic orchestration?
+- Does a critic or reviewer agent provide measurable value?
+- Does multi-agent coordination justify its additional cost and complexity?
 
-### 23.7 System and Production Questions
+### Evaluation
 
-- When does SQLite stop being sufficient for the application's
-  persistence requirements?
-- Which observability signals provide the most value during
-  debugging and evaluation?
-- What latency is acceptable to real users?
-- What operational cost per analysis is economically reasonable?
-- Which failure modes require fallback behavior before the
-  product can be considered production-ready?
+- What minimum number of evaluation cases is required for the first meaningful baseline?
+- Which evaluation dimensions can be scored deterministically?
+- Which dimensions require LLM-as-a-judge?
+- How often should human calibration be performed?
+- What failure rate is acceptable for release?
 
-### 23.8 Business Questions
+### System
 
-- Does DecisionAI measurably reduce time-to-insight?
-- Does the reduction in analytical effort justify model and
-  infrastructure costs?
-- Which user segment receives the greatest value from the
-  product?
-- Which additional use case would be the strongest next
-  expansion after the revenue-performance MVP?
+- When should persistence move from SQLite to PostgreSQL?
+- When should asynchronous execution be introduced?
+- What observability tooling is justified after local development?
+- What production deployment target should be used first?
 
-### 23.9 Open-Question Principle
+### Business
 
-Open questions should be converted into explicit hypotheses and
-experiments when they become important to the next product or
-engineering decision.
+- How much analyst time does DecisionAI actually save?
+- Which findings are most valuable to users?
+- What usage pattern would justify continued investment?
+- What unit economics would support production deployment?
 
-The project should prefer measured evidence over premature
-architectural certainty.
+Open questions should be resolved through implementation evidence, evaluation results, user feedback, or operational requirements rather than speculation.

@@ -1,0 +1,301 @@
+customer_id,signup_date,segment,region,acquisition_channel
+C0001,2023-05-31,Enterprise,East,Paid Search
+C0002,2023-03-03,Enterprise,South,Partner
+C0003,2024-09-10,Enterprise,West,Organic
+C0004,2023-11-28,Mid-Market,South,Organic
+C0005,2024-05-13,SMB,East,Referral
+C0006,2025-04-21,Enterprise,South,Partner
+C0007,2024-01-10,SMB,West,Paid Search
+C0008,2023-03-11,Mid-Market,West,Organic
+C0009,2024-02-27,SMB,East,Paid Search
+C0010,2023-10-29,SMB,East,Referral
+C0011,2025-05-07,Mid-Market,North,Partner
+C0012,2024-07-28,Enterprise,North,Paid Search
+C0013,2024-12-01,Enterprise,South,Partner
+C0014,2025-02-06,Mid-Market,West,Paid Search
+C0015,2023-08-07,Enterprise,East,Organic
+C0016,2025-01-29,SMB,West,Organic
+C0017,2024-12-27,Enterprise,West,Referral
+C0018,2024-03-06,Enterprise,South,Partner
+C0019,2024-05-21,Mid-Market,East,Referral
+C0020,2023-02-03,SMB,North,Organic
+C0021,2024-02-05,Enterprise,East,Paid Search
+C0022,2025-02-18,Mid-Market,North,Partner
+C0023,2024-06-08,Mid-Market,East,Referral
+C0024,2023-03-24,Mid-Market,West,Paid Search
+C0025,2024-07-03,SMB,South,Paid Search
+C0026,2025-06-15,SMB,South,Paid Search
+C0027,2025-06-24,Enterprise,North,Organic
+C0028,2025-01-19,SMB,West,Paid Search
+C0029,2025-04-16,SMB,South,Referral
+C0030,2023-04-26,Mid-Market,East,Partner
+C0031,2025-06-27,Mid-Market,South,Paid Search
+C0032,2024-01-17,Enterprise,South,Organic
+C0033,2023-11-01,SMB,North,Organic
+C0034,2024-12-04,Enterprise,East,Paid Search
+C0035,2024-10-15,SMB,West,Referral
+C0036,2025-05-05,SMB,South,Referral
+C0037,2024-03-28,Mid-Market,North,Paid Search
+C0038,2023-08-06,SMB,East,Referral
+C0039,2024-07-07,Mid-Market,West,Organic
+C0040,2023-11-09,SMB,South,Partner
+C0041,2023-12-01,Enterprise,South,Referral
+C0042,2024-02-22,SMB,West,Partner
+C0043,2023-08-29,Enterprise,South,Referral
+C0044,2024-12-20,Mid-Market,East,Paid Search
+C0045,2023-03-14,SMB,South,Partner
+C0046,2023-04-27,Mid-Market,East,Organic
+C0047,2024-10-20,SMB,West,Referral
+C0048,2024-05-13,SMB,South,Partner
+C0049,2023-01-18,Enterprise,South,Referral
+C0050,2024-08-27,Mid-Market,South,Referral
+C0051,2023-05-08,Mid-Market,North,Referral
+C0052,2024-07-27,SMB,West,Paid Search
+C0053,2024-12-18,SMB,North,Paid Search
+C0054,2023-06-21,SMB,East,Organic
+C0055,2024-09-10,SMB,North,Referral
+C0056,2024-12-24,SMB,South,Partner
+C0057,2025-06-21,Mid-Market,South,Paid Search
+C0058,2024-07-12,Mid-Market,South,Organic
+C0059,2023-05-19,Enterprise,South,Paid Search
+C0060,2024-03-02,Enterprise,North,Organic
+C0061,2023-09-09,Mid-Market,East,Paid Search
+C0062,2024-02-07,Enterprise,North,Referral
+C0063,2024-05-09,Mid-Market,West,Paid Search
+C0064,2025-05-19,SMB,East,Referral
+C0065,2025-02-13,Mid-Market,South,Organic
+C0066,2023-11-28,Enterprise,North,Partner
+C0067,2024-05-10,SMB,South,Referral
+C0068,2023-10-15,SMB,East,Referral
+C0069,2023-04-19,SMB,North,Referral
+C0070,2024-10-28,Enterprise,West,Partner
+C0071,2023-10-20,SMB,East,Partner
+C0072,2025-06-08,SMB,North,Organic
+C0073,2023-05-09,Mid-Market,East,Paid Search
+C0074,2023-10-10,Enterprise,South,Partner
+C0075,2025-05-28,SMB,North,Partner
+C0076,2024-08-01,SMB,East,Referral
+C0077,2025-04-05,SMB,West,Partner
+C0078,2023-06-14,SMB,East,Organic
+C0079,2023-09-30,Mid-Market,West,Partner
+C0080,2023-05-19,Enterprise,North,Referral
+C0081,2025-02-10,Enterprise,North,Partner
+C0082,2023-04-16,Mid-Market,South,Paid Search
+C0083,2023-01-21,Enterprise,South,Referral
+C0084,2024-01-10,Mid-Market,West,Organic
+C0085,2024-11-02,Enterprise,South,Paid Search
+C0086,2023-01-05,Enterprise,West,Organic
+C0087,2023-01-30,SMB,North,Partner
+C0088,2025-03-24,SMB,East,Organic
+C0089,2023-12-01,Mid-Market,East,Partner
+C0090,2023-02-10,SMB,South,Paid Search
+C0091,2025-06-29,Enterprise,South,Partner
+C0092,2024-03-31,Mid-Market,South,Organic
+C0093,2025-05-02,SMB,North,Organic
+C0094,2023-09-12,SMB,North,Referral
+C0095,2025-06-03,SMB,South,Referral
+C0096,2025-04-25,Enterprise,West,Referral
+C0097,2024-01-16,SMB,West,Partner
+C0098,2023-01-23,Enterprise,North,Referral
+C0099,2025-01-23,SMB,South,Organic
+C0100,2024-06-01,Enterprise,North,Paid Search
+C0101,2025-06-06,SMB,North,Paid Search
+C0102,2024-04-08,Mid-Market,South,Partner
+C0103,2024-04-20,SMB,West,Partner
+C0104,2024-03-31,SMB,East,Referral
+C0105,2023-05-16,Mid-Market,West,Organic
+C0106,2024-10-21,SMB,East,Paid Search
+C0107,2023-01-06,Enterprise,North,Referral
+C0108,2023-06-15,Enterprise,East,Partner
+C0109,2024-01-30,Mid-Market,East,Partner
+C0110,2025-02-11,SMB,East,Organic
+C0111,2023-09-20,Enterprise,South,Partner
+C0112,2024-02-27,SMB,South,Referral
+C0113,2024-11-28,Mid-Market,West,Partner
+C0114,2024-11-18,Mid-Market,South,Paid Search
+C0115,2023-04-19,Mid-Market,West,Paid Search
+C0116,2023-04-14,Mid-Market,West,Partner
+C0117,2023-09-07,Mid-Market,East,Organic
+C0118,2023-09-03,SMB,West,Referral
+C0119,2025-02-05,Enterprise,West,Organic
+C0120,2025-03-15,SMB,South,Referral
+C0121,2023-11-23,SMB,North,Partner
+C0122,2023-10-18,SMB,West,Organic
+C0123,2025-04-14,Enterprise,East,Organic
+C0124,2023-05-23,SMB,East,Organic
+C0125,2024-02-20,SMB,East,Organic
+C0126,2024-10-08,SMB,North,Organic
+C0127,2025-01-27,SMB,South,Referral
+C0128,2024-04-15,Enterprise,West,Paid Search
+C0129,2025-01-25,SMB,West,Referral
+C0130,2024-11-02,Enterprise,West,Partner
+C0131,2024-05-04,SMB,South,Organic
+C0132,2025-03-21,SMB,North,Organic
+C0133,2024-08-09,Mid-Market,West,Paid Search
+C0134,2023-09-15,SMB,North,Paid Search
+C0135,2025-04-24,Mid-Market,West,Organic
+C0136,2023-03-27,Enterprise,North,Organic
+C0137,2024-01-04,Enterprise,East,Organic
+C0138,2025-02-02,Enterprise,West,Partner
+C0139,2023-08-07,Enterprise,South,Partner
+C0140,2024-06-12,Enterprise,East,Referral
+C0141,2024-07-16,Enterprise,East,Organic
+C0142,2025-01-23,Mid-Market,South,Referral
+C0143,2025-05-31,Enterprise,West,Paid Search
+C0144,2024-12-16,Mid-Market,East,Referral
+C0145,2023-08-16,SMB,North,Organic
+C0146,2024-01-31,Mid-Market,North,Paid Search
+C0147,2024-07-05,SMB,South,Paid Search
+C0148,2024-04-05,Mid-Market,East,Paid Search
+C0149,2024-01-31,Mid-Market,North,Referral
+C0150,2023-08-03,SMB,West,Partner
+C0151,2024-09-03,Enterprise,West,Paid Search
+C0152,2024-12-03,SMB,South,Referral
+C0153,2025-05-25,Enterprise,South,Referral
+C0154,2023-07-04,Enterprise,East,Referral
+C0155,2024-11-29,Mid-Market,North,Paid Search
+C0156,2023-06-11,Enterprise,North,Organic
+C0157,2024-06-28,Enterprise,East,Partner
+C0158,2025-04-18,SMB,West,Referral
+C0159,2024-08-03,SMB,East,Referral
+C0160,2024-06-13,SMB,East,Partner
+C0161,2024-10-21,SMB,West,Partner
+C0162,2023-06-04,Enterprise,South,Referral
+C0163,2024-02-11,Enterprise,West,Partner
+C0164,2025-04-29,Enterprise,North,Paid Search
+C0165,2024-10-20,Mid-Market,North,Organic
+C0166,2024-04-19,Mid-Market,North,Organic
+C0167,2023-04-28,Mid-Market,North,Referral
+C0168,2024-03-10,Mid-Market,East,Referral
+C0169,2024-10-25,Enterprise,West,Partner
+C0170,2024-04-17,Mid-Market,North,Referral
+C0171,2023-05-07,Enterprise,West,Organic
+C0172,2024-12-17,SMB,East,Organic
+C0173,2024-03-21,Mid-Market,East,Paid Search
+C0174,2025-04-20,Enterprise,North,Referral
+C0175,2024-10-28,Mid-Market,East,Partner
+C0176,2025-01-15,Enterprise,East,Paid Search
+C0177,2024-12-26,Mid-Market,East,Paid Search
+C0178,2023-10-13,SMB,West,Organic
+C0179,2023-03-20,Enterprise,East,Paid Search
+C0180,2024-11-03,Mid-Market,North,Referral
+C0181,2023-06-10,Mid-Market,West,Partner
+C0182,2023-11-26,Enterprise,East,Paid Search
+C0183,2023-05-08,Mid-Market,East,Partner
+C0184,2023-01-05,Enterprise,West,Partner
+C0185,2024-01-22,SMB,South,Partner
+C0186,2025-03-11,Mid-Market,North,Organic
+C0187,2024-03-12,Mid-Market,North,Referral
+C0188,2024-05-11,SMB,North,Paid Search
+C0189,2024-10-20,Enterprise,South,Paid Search
+C0190,2025-06-02,Mid-Market,South,Paid Search
+C0191,2023-01-12,SMB,East,Partner
+C0192,2024-11-04,Enterprise,East,Organic
+C0193,2023-12-23,Enterprise,North,Partner
+C0194,2024-09-16,SMB,West,Partner
+C0195,2023-02-09,SMB,East,Partner
+C0196,2023-01-22,Mid-Market,North,Referral
+C0197,2024-07-22,SMB,East,Partner
+C0198,2025-02-26,SMB,North,Organic
+C0199,2024-02-18,SMB,West,Partner
+C0200,2025-01-07,SMB,North,Partner
+C0201,2023-09-21,Mid-Market,West,Organic
+C0202,2023-01-05,SMB,North,Organic
+C0203,2025-01-17,Mid-Market,West,Partner
+C0204,2025-05-28,SMB,South,Partner
+C0205,2023-08-12,SMB,East,Partner
+C0206,2025-06-01,Enterprise,North,Partner
+C0207,2025-02-10,Enterprise,West,Partner
+C0208,2024-02-12,SMB,South,Organic
+C0209,2023-04-14,SMB,East,Referral
+C0210,2024-05-07,Enterprise,East,Referral
+C0211,2023-03-20,Enterprise,South,Organic
+C0212,2025-01-11,Enterprise,North,Organic
+C0213,2023-01-15,SMB,North,Referral
+C0214,2024-04-21,Enterprise,East,Referral
+C0215,2024-04-09,SMB,North,Referral
+C0216,2023-01-04,SMB,North,Partner
+C0217,2024-02-23,Enterprise,South,Organic
+C0218,2023-12-05,SMB,West,Organic
+C0219,2023-12-10,Enterprise,East,Paid Search
+C0220,2024-05-10,Enterprise,South,Referral
+C0221,2025-03-06,Mid-Market,South,Organic
+C0222,2023-08-15,Enterprise,East,Paid Search
+C0223,2024-01-17,Mid-Market,East,Referral
+C0224,2023-08-23,Mid-Market,South,Partner
+C0225,2023-05-25,SMB,South,Referral
+C0226,2024-09-22,Mid-Market,West,Paid Search
+C0227,2023-04-28,SMB,West,Organic
+C0228,2025-05-14,SMB,North,Paid Search
+C0229,2024-07-14,Mid-Market,West,Referral
+C0230,2024-01-01,Mid-Market,West,Paid Search
+C0231,2023-05-20,Mid-Market,West,Organic
+C0232,2025-05-15,Mid-Market,East,Paid Search
+C0233,2025-04-19,SMB,South,Paid Search
+C0234,2024-03-11,Mid-Market,North,Organic
+C0235,2023-03-28,Mid-Market,South,Referral
+C0236,2024-06-21,Enterprise,East,Referral
+C0237,2024-06-19,Mid-Market,East,Paid Search
+C0238,2023-08-13,Enterprise,South,Referral
+C0239,2023-06-29,Mid-Market,East,Referral
+C0240,2024-04-25,Mid-Market,West,Referral
+C0241,2025-01-07,Enterprise,East,Partner
+C0242,2023-04-27,Enterprise,West,Referral
+C0243,2024-10-30,Mid-Market,South,Partner
+C0244,2023-08-13,SMB,East,Partner
+C0245,2023-12-17,Mid-Market,North,Organic
+C0246,2023-02-21,SMB,West,Partner
+C0247,2025-01-19,SMB,North,Paid Search
+C0248,2024-05-30,Mid-Market,South,Organic
+C0249,2024-10-28,SMB,North,Referral
+C0250,2025-04-03,SMB,South,Partner
+C0251,2024-10-06,Enterprise,South,Paid Search
+C0252,2024-10-08,SMB,North,Referral
+C0253,2024-09-01,SMB,East,Paid Search
+C0254,2024-04-02,Enterprise,North,Partner
+C0255,2024-02-15,Enterprise,South,Paid Search
+C0256,2024-12-03,Enterprise,North,Referral
+C0257,2024-11-17,Mid-Market,West,Referral
+C0258,2023-11-01,SMB,East,Organic
+C0259,2024-11-20,Mid-Market,South,Organic
+C0260,2024-10-10,SMB,South,Partner
+C0261,2025-04-19,Enterprise,West,Referral
+C0262,2023-07-02,Enterprise,West,Partner
+C0263,2024-08-16,SMB,East,Paid Search
+C0264,2025-02-07,Mid-Market,South,Organic
+C0265,2025-01-31,Enterprise,North,Paid Search
+C0266,2024-03-13,Mid-Market,West,Organic
+C0267,2023-10-07,SMB,North,Partner
+C0268,2025-05-07,SMB,East,Organic
+C0269,2023-06-25,SMB,North,Paid Search
+C0270,2025-06-26,Mid-Market,East,Paid Search
+C0271,2023-01-13,SMB,South,Organic
+C0272,2025-02-05,Enterprise,West,Referral
+C0273,2024-05-22,Mid-Market,South,Referral
+C0274,2024-12-25,Enterprise,East,Organic
+C0275,2024-10-23,Mid-Market,East,Referral
+C0276,2025-03-14,Mid-Market,West,Partner
+C0277,2023-10-29,Mid-Market,East,Partner
+C0278,2024-09-20,Enterprise,South,Referral
+C0279,2024-01-28,Enterprise,South,Referral
+C0280,2023-04-20,Enterprise,South,Paid Search
+C0281,2024-06-15,Mid-Market,West,Referral
+C0282,2024-04-16,SMB,North,Paid Search
+C0283,2025-06-29,Enterprise,East,Referral
+C0284,2023-12-24,SMB,North,Paid Search
+C0285,2023-10-16,SMB,South,Organic
+C0286,2024-07-08,Enterprise,East,Paid Search
+C0287,2024-01-19,SMB,North,Referral
+C0288,2024-05-31,SMB,South,Paid Search
+C0289,2023-06-05,Enterprise,East,Referral
+C0290,2024-10-12,Enterprise,West,Referral
+C0291,2025-03-12,Mid-Market,West,Partner
+C0292,2024-08-16,Enterprise,East,Referral
+C0293,2023-09-17,Enterprise,East,Partner
+C0294,2024-02-25,Enterprise,North,Organic
+C0295,2024-04-07,Enterprise,West,Paid Search
+C0296,2024-08-15,Mid-Market,West,Referral
+C0297,2024-01-16,Enterprise,North,Partner
+C0298,2023-05-21,SMB,West,Referral
+C0299,2025-06-03,Enterprise,East,Paid Search
+C0300,2023-01-05,SMB,South,Organic
