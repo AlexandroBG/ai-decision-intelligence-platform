@@ -1,5 +1,7 @@
 import pandas as pd
+
 from app.analytics.contracts import RevenueComparison
+
 
 def add_net_revenue(dataframe: pd.DataFrame) -> pd.DataFrame:
     enriched = dataframe.copy()

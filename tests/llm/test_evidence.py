@@ -100,7 +100,7 @@ def test_build_evidence_context_returns_contract() -> None:
     )
 
     assert isinstance(
-        result,
+        result.evidence,
         EvidenceContext,
     )
 
@@ -112,8 +112,26 @@ def test_build_evidence_context_maps_revenue() -> None:
         ml_result=build_ml_result(),
     )
 
-    assert result.revenue.absolute_change == -300.0
-    assert result.revenue.percentage_change == -0.30
+    evidence = result.evidence
+
+    assert evidence.revenue.absolute_change == -300.0
+    assert evidence.revenue.percentage_change == -0.30
+
+
+def test_build_evidence_context_assigns_revenue_provenance() -> None:
+    result = build_evidence_context(
+        question="Why did revenue decline?",
+        analytics_result=build_analytics_result(),
+        ml_result=build_ml_result(),
+    )
+
+    evidence = result.evidence
+
+    assert evidence.revenue.evidence_id == ("revenue_summary_1")
+
+    assert evidence.revenue.source == "analytics"
+
+    assert evidence.revenue.evidence_type == "revenue_summary"
 
 
 def test_build_evidence_context_maps_drivers() -> None:
@@ -123,9 +141,73 @@ def test_build_evidence_context_maps_drivers() -> None:
         ml_result=build_ml_result(),
     )
 
-    assert len(result.analytics_drivers) == 3
+    evidence = result.evidence
 
-    assert result.analytics_drivers[0].value == "South"
+    assert len(evidence.analytics_drivers) == 3
+
+    assert evidence.analytics_drivers[0].value == "South"
+
+
+def test_build_evidence_context_assigns_driver_ids() -> None:
+    result = build_evidence_context(
+        question="Why did revenue decline?",
+        analytics_result=build_analytics_result(),
+        ml_result=build_ml_result(),
+    )
+
+    evidence = result.evidence
+
+    assert [driver.evidence_id for driver in evidence.analytics_drivers] == [
+        "analytics_driver_1",
+        "analytics_driver_2",
+        "analytics_driver_3",
+    ]
+
+
+def test_build_evidence_context_assigns_driver_provenance() -> None:
+    result = build_evidence_context(
+        question="Why did revenue decline?",
+        analytics_result=build_analytics_result(),
+        ml_result=build_ml_result(),
+    )
+
+    evidence = result.evidence
+
+    assert all(driver.source == "analytics" for driver in evidence.analytics_drivers)
+
+    assert all(
+        driver.evidence_type == "driver" for driver in evidence.analytics_drivers
+    )
+
+
+def test_build_evidence_context_excludes_positive_drivers() -> None:
+    analytics_result = build_analytics_result()
+
+    analytics_result = AnalyticsResult(
+        revenue_comparison=analytics_result.revenue_comparison,
+        drivers=[
+            *analytics_result.drivers,
+            DriverEvidence(
+                dimension="region",
+                value="North",
+                baseline_revenue=100.0,
+                comparison_revenue=150.0,
+                absolute_change=50.0,
+                percentage_change=0.50,
+                contribution_to_total_change=-0.17,
+            ),
+        ],
+    )
+
+    result = build_evidence_context(
+        question="Why did revenue decline?",
+        analytics_result=analytics_result,
+        ml_result=build_ml_result(),
+    )
+
+    evidence = result.evidence
+
+    assert all(driver.value != "North" for driver in evidence.analytics_drivers)
 
 
 def test_build_evidence_context_limits_drivers() -> None:
@@ -136,9 +218,11 @@ def test_build_evidence_context_limits_drivers() -> None:
         max_analytics_drivers=2,
     )
 
-    assert len(result.analytics_drivers) == 2
+    evidence = result.evidence
 
-    assert [driver.value for driver in result.analytics_drivers] == [
+    assert len(evidence.analytics_drivers) == 2
+
+    assert [driver.value for driver in evidence.analytics_drivers] == [
         "South",
         "Computing",
     ]
@@ -152,13 +236,15 @@ def test_build_evidence_context_allows_zero_drivers() -> None:
         max_analytics_drivers=0,
     )
 
-    assert result.analytics_drivers == []
+    evidence = result.evidence
+
+    assert evidence.analytics_drivers == []
 
 
 def test_build_evidence_context_rejects_negative_driver_limit() -> None:
     with pytest.raises(
         ValueError,
-        match="max_analytics_drivers",
+        match="analytics_driver_items",
     ):
         build_evidence_context(
             question="Why did revenue decline?",
@@ -175,7 +261,9 @@ def test_build_evidence_context_keeps_only_anomalies() -> None:
         ml_result=build_ml_result(),
     )
 
-    assert all(anomaly.value != "North" for anomaly in result.ml_anomalies)
+    evidence = result.evidence
+
+    assert all(anomaly.value != "North" for anomaly in evidence.ml_anomalies)
 
 
 def test_build_evidence_context_orders_anomalies_by_score() -> None:
@@ -185,11 +273,43 @@ def test_build_evidence_context_orders_anomalies_by_score() -> None:
         ml_result=build_ml_result(),
     )
 
-    assert [anomaly.value for anomaly in result.ml_anomalies] == [
+    evidence = result.evidence
+
+    assert [anomaly.value for anomaly in evidence.ml_anomalies] == [
         "Computing",
         "Partner",
         "South",
     ]
+
+
+def test_build_evidence_context_assigns_anomaly_ids() -> None:
+    result = build_evidence_context(
+        question="Why did revenue decline?",
+        analytics_result=build_analytics_result(),
+        ml_result=build_ml_result(),
+    )
+
+    evidence = result.evidence
+
+    assert [anomaly.evidence_id for anomaly in evidence.ml_anomalies] == [
+        "ml_anomaly_1",
+        "ml_anomaly_2",
+        "ml_anomaly_3",
+    ]
+
+
+def test_build_evidence_context_assigns_anomaly_provenance() -> None:
+    result = build_evidence_context(
+        question="Why did revenue decline?",
+        analytics_result=build_analytics_result(),
+        ml_result=build_ml_result(),
+    )
+
+    evidence = result.evidence
+
+    assert all(anomaly.source == "ml" for anomaly in evidence.ml_anomalies)
+
+    assert all(anomaly.evidence_type == "anomaly" for anomaly in evidence.ml_anomalies)
 
 
 def test_build_evidence_context_limits_ml_anomalies() -> None:
@@ -200,9 +320,11 @@ def test_build_evidence_context_limits_ml_anomalies() -> None:
         max_ml_anomalies=2,
     )
 
-    assert len(result.ml_anomalies) == 2
+    evidence = result.evidence
 
-    assert [anomaly.value for anomaly in result.ml_anomalies] == [
+    assert len(evidence.ml_anomalies) == 2
+
+    assert [anomaly.value for anomaly in evidence.ml_anomalies] == [
         "Computing",
         "Partner",
     ]
@@ -216,13 +338,15 @@ def test_build_evidence_context_allows_zero_ml_anomalies() -> None:
         max_ml_anomalies=0,
     )
 
-    assert result.ml_anomalies == []
+    evidence = result.evidence
+
+    assert evidence.ml_anomalies == []
 
 
 def test_build_evidence_context_rejects_negative_ml_limit() -> None:
     with pytest.raises(
         ValueError,
-        match="max_ml_anomalies",
+        match="ml_anomaly_items",
     ):
         build_evidence_context(
             question="Why did revenue decline?",
@@ -242,3 +366,21 @@ def test_build_evidence_context_rejects_empty_question() -> None:
             analytics_result=build_analytics_result(),
             ml_result=build_ml_result(),
         )
+
+
+def test_build_evidence_context_returns_selection_metadata() -> None:
+    result = build_evidence_context(
+        question="Why did revenue decline?",
+        analytics_result=build_analytics_result(),
+        ml_result=build_ml_result(),
+        max_analytics_drivers=2,
+        max_ml_anomalies=2,
+    )
+
+    assert result.selection_metadata.analytics_drivers_available == 3
+
+    assert result.selection_metadata.analytics_drivers_selected == 2
+
+    assert result.selection_metadata.ml_anomalies_available == 3
+
+    assert result.selection_metadata.ml_anomalies_selected == 2

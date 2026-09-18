@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from app.analytics.contracts import AnalyticsResult
 from app.llm.contracts import (
     EvidenceAnomaly,
@@ -5,73 +7,99 @@ from app.llm.contracts import (
     EvidenceDriver,
     EvidenceRevenue,
 )
+from app.llm.selection import (
+    DEFAULT_ANALYTICS_DRIVER_BUDGET,
+    DEFAULT_ML_ANOMALY_BUDGET,
+    ContextBudget,
+    ContextSelectionPolicy,
+    SelectionMetadata,
+    select_context,
+)
 from app.ml.contracts import MLResult
 
-DEFAULT_MAX_ANALYTICS_DRIVERS = 5
-DEFAULT_MAX_ML_ANOMALIES = 10
+
+@dataclass(frozen=True)
+class EvidenceBuildResult:
+    evidence: EvidenceContext
+    selection_metadata: SelectionMetadata
 
 
 def build_evidence_context(
     question: str,
     analytics_result: AnalyticsResult,
     ml_result: MLResult,
-    max_analytics_drivers: int = DEFAULT_MAX_ANALYTICS_DRIVERS,
-    max_ml_anomalies: int = DEFAULT_MAX_ML_ANOMALIES,
-) -> EvidenceContext:
-    if max_analytics_drivers < 0:
-        raise ValueError("max_analytics_drivers must be greater than or equal to 0.")
+    max_analytics_drivers: int = (DEFAULT_ANALYTICS_DRIVER_BUDGET),
+    max_ml_anomalies: int = (DEFAULT_ML_ANOMALY_BUDGET),
+) -> EvidenceBuildResult:
+    budget = ContextBudget(
+        analytics_driver_items=max_analytics_drivers,
+        ml_anomaly_items=max_ml_anomalies,
+    )
 
-    if max_ml_anomalies < 0:
-        raise ValueError("max_ml_anomalies must be greater than or equal to 0.")
+    policy = ContextSelectionPolicy(
+        budget=budget,
+    )
+
+    selection = select_context(
+        drivers=analytics_result.drivers,
+        anomalies=ml_result.anomalies,
+        policy=policy,
+    )
 
     revenue = analytics_result.revenue_comparison
 
     revenue_evidence = EvidenceRevenue(
+        evidence_id="revenue_summary_1",
+        source="analytics",
+        evidence_type="revenue_summary",
         baseline_revenue=revenue.baseline_revenue,
         comparison_revenue=revenue.comparison_revenue,
         absolute_change=revenue.absolute_change,
         percentage_change=revenue.percentage_change,
     )
 
-    selected_drivers = analytics_result.drivers[:max_analytics_drivers]
-
     analytics_drivers = [
         EvidenceDriver(
+            evidence_id=f"analytics_driver_{index}",
+            source="analytics",
+            evidence_type="driver",
             dimension=driver.dimension,
             value=driver.value,
             absolute_change=driver.absolute_change,
             percentage_change=driver.percentage_change,
             contribution_to_total_change=(driver.contribution_to_total_change),
         )
-        for driver in selected_drivers
+        for index, driver in enumerate(
+            selection.analytics_drivers,
+            start=1,
+        )
     ]
-
-    detected_anomalies = [
-        anomaly for anomaly in ml_result.anomalies if anomaly.is_anomaly
-    ]
-
-    ranked_anomalies = sorted(
-        detected_anomalies,
-        key=lambda anomaly: anomaly.anomaly_score,
-        reverse=True,
-    )
-
-    selected_anomalies = ranked_anomalies[:max_ml_anomalies]
 
     ml_anomalies = [
         EvidenceAnomaly(
+            evidence_id=f"ml_anomaly_{index}",
+            source="ml",
+            evidence_type="anomaly",
             date=anomaly.date,
             dimension=anomaly.dimension,
             value=anomaly.value,
             daily_revenue=anomaly.daily_revenue,
             anomaly_score=anomaly.anomaly_score,
         )
-        for anomaly in selected_anomalies
+        for index, anomaly in enumerate(
+            selection.ml_anomalies,
+            start=1,
+        )
     ]
 
-    return EvidenceContext(
+    evidence = EvidenceContext(
         question=question,
         revenue=revenue_evidence,
         analytics_drivers=analytics_drivers,
         ml_anomalies=ml_anomalies,
+    )
+
+    return EvidenceBuildResult(
+        evidence=evidence,
+        selection_metadata=selection.metadata,
     )
