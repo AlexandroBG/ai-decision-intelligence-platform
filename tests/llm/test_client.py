@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from google.genai import errors
+from pydantic import BaseModel
 
 from app.llm.client import GeminiClient
 from app.llm.config import LLMConfig
@@ -11,6 +12,10 @@ from app.llm.errors import (
     LLMProviderError,
     LLMResponseError,
 )
+
+
+class ExampleStructuredResponse(BaseModel):
+    answer: str
 
 
 def build_config() -> LLMConfig:
@@ -114,6 +119,151 @@ def test_generate_text_wraps_provider_error() -> None:
             client.generate_text("Explain revenue.")
 
 
+def test_generate_structured_returns_requested_contract() -> None:
+    mock_response = MagicMock()
+
+    mock_response.parsed = {
+        "answer": "Structured answer.",
+    }
+
+    with patch("app.llm.client.genai.Client") as mock_client_class:
+        mock_client = MagicMock()
+
+        mock_client.models.generate_content.return_value = mock_response
+
+        mock_client_class.return_value = mock_client
+
+        client = GeminiClient(
+            config=build_config(),
+        )
+
+        result = client.generate_structured(
+            prompt="Return structured data.",
+            response_model=ExampleStructuredResponse,
+        )
+
+    assert isinstance(
+        result,
+        ExampleStructuredResponse,
+    )
+
+    assert result.answer == "Structured answer."
+
+
+def test_generate_structured_rejects_empty_prompt() -> None:
+    with patch("app.llm.client.genai.Client"):
+        client = GeminiClient(
+            config=build_config(),
+        )
+
+        with pytest.raises(
+            LLMInputError,
+            match="Prompt must not be empty",
+        ):
+            client.generate_structured(
+                prompt="",
+                response_model=ExampleStructuredResponse,
+            )
+
+
+def test_generate_structured_rejects_whitespace_prompt() -> None:
+    with patch("app.llm.client.genai.Client"):
+        client = GeminiClient(
+            config=build_config(),
+        )
+
+        with pytest.raises(
+            LLMInputError,
+            match="Prompt must not be empty",
+        ):
+            client.generate_structured(
+                prompt="   ",
+                response_model=ExampleStructuredResponse,
+            )
+
+
+def test_generate_structured_rejects_missing_parsed_response() -> None:
+    mock_response = MagicMock()
+    mock_response.parsed = None
+
+    with patch("app.llm.client.genai.Client") as mock_client_class:
+        mock_client = MagicMock()
+
+        mock_client.models.generate_content.return_value = mock_response
+
+        mock_client_class.return_value = mock_client
+
+        client = GeminiClient(
+            config=build_config(),
+        )
+
+        with pytest.raises(
+            LLMResponseError,
+            match=("Gemini returned an invalid structured response"),
+        ):
+            client.generate_structured(
+                prompt="Return structured data.",
+                response_model=ExampleStructuredResponse,
+            )
+
+
+def test_generate_structured_rejects_invalid_contract() -> None:
+    mock_response = MagicMock()
+
+    mock_response.parsed = {
+        "wrong_field": True,
+    }
+
+    with patch("app.llm.client.genai.Client") as mock_client_class:
+        mock_client = MagicMock()
+
+        mock_client.models.generate_content.return_value = mock_response
+
+        mock_client_class.return_value = mock_client
+
+        client = GeminiClient(
+            config=build_config(),
+        )
+
+        with pytest.raises(
+            LLMResponseError,
+            match=("Gemini returned an invalid structured response"),
+        ):
+            client.generate_structured(
+                prompt="Return structured data.",
+                response_model=ExampleStructuredResponse,
+            )
+
+
+def test_generate_structured_wraps_provider_error() -> None:
+    with patch("app.llm.client.genai.Client") as mock_client_class:
+        mock_client = MagicMock()
+
+        mock_client.models.generate_content.side_effect = errors.ClientError(
+            400,
+            {
+                "error": {
+                    "message": "Invalid request",
+                }
+            },
+        )
+
+        mock_client_class.return_value = mock_client
+
+        client = GeminiClient(
+            config=build_config(),
+        )
+
+        with pytest.raises(
+            LLMProviderError,
+            match="Gemini request failed",
+        ):
+            client.generate_structured(
+                prompt="Return structured data.",
+                response_model=ExampleStructuredResponse,
+            )
+
+
 def test_generate_interpretation_returns_contract() -> None:
     mock_response = MagicMock()
 
@@ -184,7 +334,7 @@ def test_generate_interpretation_rejects_invalid_response() -> None:
 
         with pytest.raises(
             LLMResponseError,
-            match="Gemini returned an invalid structured response",
+            match=("Gemini returned an invalid structured response"),
         ):
             client.generate_interpretation("Interpret the evidence.")
 
