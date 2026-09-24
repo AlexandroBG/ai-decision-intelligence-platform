@@ -4,6 +4,9 @@ from app.agent.contracts import (
     AgentHistory,
     AgentObservation,
 )
+from app.agent.language_policy import (
+    OBSERVATIONAL_LANGUAGE_POLICY,
+)
 from app.agent.prompts import (
     AGENT_SYSTEM_PROMPT,
     build_agent_prompt,
@@ -76,7 +79,15 @@ def build_history() -> AgentHistory:
         },
     )
 
-    return AgentHistory(observations=[observation])
+    return AgentHistory(
+        observations=[
+            observation,
+        ]
+    )
+
+
+def normalized_system_prompt() -> str:
+    return " ".join(AGENT_SYSTEM_PROMPT.split())
 
 
 def test_system_prompt_requires_single_action() -> None:
@@ -131,6 +142,73 @@ def test_system_prompt_prohibits_unknown_evidence_steps() -> None:
         "Do not reference an observation step "
         "that does not exist." in AGENT_SYSTEM_PROMPT
     )
+
+
+def test_system_prompt_recognizes_multiple_analytical_needs() -> None:
+    prompt = normalized_system_prompt()
+
+    assert "multiple distinct analytical needs" in prompt
+
+
+def test_system_prompt_requires_coverage_of_each_analytical_need() -> None:
+    prompt = normalized_system_prompt()
+
+    assert "cover each requested analytical need" in prompt
+
+
+def test_system_prompt_rejects_partial_coverage() -> None:
+    prompt = normalized_system_prompt()
+
+    assert (
+        "Do not treat partial coverage of a multi-part "
+        "question as sufficient evidence." in prompt
+    )
+
+
+def test_system_prompt_requires_aggregate_evidence_when_requested() -> None:
+    prompt = normalized_system_prompt()
+
+    assert "If the user requests an aggregate comparison or business metric" in prompt
+
+    assert "obtain that evidence before returning the final answer" in prompt
+
+
+def test_system_prompt_requires_breakdown_evidence_when_requested() -> None:
+    prompt = normalized_system_prompt()
+
+    assert "If the user also requests drivers, deteriorations, segments" in prompt
+
+    assert "obtain the relevant analytical evidence for those needs as well" in prompt
+
+
+def test_system_prompt_does_not_substitute_driver_evidence_for_aggregate() -> None:
+    prompt = normalized_system_prompt()
+
+    assert (
+        "Evidence from a breakdown or driver analysis "
+        "does not replace requested aggregate "
+        "comparison metrics." in prompt
+    )
+
+
+def test_system_prompt_does_not_substitute_aggregate_for_driver_analysis() -> None:
+    prompt = normalized_system_prompt()
+
+    assert (
+        "Aggregate comparison evidence does not replace "
+        "requested driver or breakdown analysis." in prompt
+    )
+
+
+def test_system_prompt_avoids_redundant_evidence_calls() -> None:
+    prompt = normalized_system_prompt()
+
+    assert (
+        "If an analytical need has already been "
+        "satisfied by a successful tool observation" in prompt
+    )
+
+    assert "do not call another tool merely to reproduce the same evidence" in prompt
 
 
 def test_agent_prompt_includes_question() -> None:
@@ -262,6 +340,48 @@ def test_agent_prompt_preserves_history_order() -> None:
     second_position = prompt.index('"step": "second"')
 
     assert first_position < second_position
+
+
+def test_agent_prompt_includes_language_policy() -> None:
+    prompt = build_agent_prompt(
+        question="What happened?",
+        tool_catalog=build_catalog(),
+    )
+
+    assert OBSERVATIONAL_LANGUAGE_POLICY in prompt
+
+
+def test_agent_prompt_contains_preferred_observational_language() -> None:
+    prompt = build_agent_prompt(
+        question="What happened?",
+        tool_catalog=build_catalog(),
+    )
+
+    assert "largest observed deterioration" in prompt
+
+    assert "highest-priority area to investigate" in prompt
+
+
+def test_agent_prompt_contains_causal_language_warning() -> None:
+    prompt = build_agent_prompt(
+        question="What happened?",
+        tool_catalog=build_catalog(),
+    )
+
+    assert "Do not claim that a dimension caused a revenue change" in prompt
+
+
+def test_agent_prompt_language_policy_is_after_base_prompt() -> None:
+    prompt = build_agent_prompt(
+        question="What happened?",
+        tool_catalog=build_catalog(),
+    )
+
+    action_position = prompt.index("Decide the single next action.")
+
+    policy_position = prompt.index("LANGUAGE POLICY")
+
+    assert policy_position > action_position
 
 
 def test_agent_prompt_is_deterministic() -> None:

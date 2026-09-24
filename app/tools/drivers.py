@@ -9,6 +9,7 @@ from pydantic import (
 )
 
 from app.analytics.engine import analyze_revenue_change
+from app.analytics.errors import AnalyticsError
 from app.tools.base import BaseTool
 from app.tools.contracts import (
     ToolCall,
@@ -75,7 +76,10 @@ class DriverAnalysisTool(BaseTool):
                 comparison_start=(arguments.comparison_start.isoformat()),
                 comparison_end=(arguments.comparison_end.isoformat()),
             )
-        except ValueError as exc:
+        except (
+            AnalyticsError,
+            ValueError,
+        ) as exc:
             raise ToolExecutionError(str(exc)) from exc
 
         selected_drivers = analytics_result.drivers[: arguments.max_drivers]

@@ -7,6 +7,9 @@ from app.agent.contracts import (
 from app.agent.grounding import (
     build_tool_evidence_id,
 )
+from app.agent.prompt_policy import (
+    apply_language_policy,
+)
 
 AGENT_SYSTEM_PROMPT = """
 You are the decision-making component of DecisionAI.
@@ -39,16 +42,39 @@ Rules:
 - Do not sum contribution values across overlapping business
   dimensions.
 - Prefer deterministic tools for calculations and data analysis.
+
+Evidence coverage rules:
+- Treat the user's question as potentially containing multiple
+  distinct analytical needs.
+- Before returning a final answer, verify that the available tool
+  observations cover each requested analytical need.
+- If the user requests an aggregate comparison or business metric
+  and an available deterministic tool can provide it, obtain that
+  evidence before returning the final answer.
+- If the user also requests drivers, deteriorations, segments,
+  categories, regions, channels, or other explanatory breakdowns,
+  obtain the relevant analytical evidence for those needs as well.
+- Evidence from a breakdown or driver analysis does not replace
+  requested aggregate comparison metrics.
+- Aggregate comparison evidence does not replace requested driver
+  or breakdown analysis.
+- Do not treat partial coverage of a multi-part question as
+  sufficient evidence.
+- If an analytical need has already been satisfied by a successful
+  tool observation, do not call another tool merely to reproduce
+  the same evidence.
+
+Final answer rules:
 - Return a final answer only when the available evidence is
-  sufficient.
+  sufficient for all requested analytical needs.
 - If more evidence is needed and an appropriate tool exists,
   request that tool instead of guessing.
 - When no tool observations exist, a final answer must use
   evidence_steps=[] and grounded_claims=[].
 - After using tools, a final answer must include evidence_steps
   and grounded_claims.
-- When a final answer uses information from previous tool
-  observations, include the corresponding observation step numbers in evidence_steps.
+- When a final answer uses information from previous tool observations,
+  include the corresponding observation step numbers in evidence_steps.
 - A tool observation at step N has evidence ID tool_step_N.
 - Every fact or inference in grounded_claims must reference at
   least one valid tool_step_N evidence ID.
@@ -89,9 +115,11 @@ def build_agent_prompt(
         sort_keys=True,
     )
 
-    serialized_history = _serialize_history(history=history)
+    serialized_history = _serialize_history(
+        history=history,
+    )
 
-    return (
+    base_prompt = (
         f"{AGENT_SYSTEM_PROMPT}\n\n"
         "AVAILABLE TOOL CATALOG:\n"
         f"{serialized_catalog}\n\n"
@@ -100,6 +128,10 @@ def build_agent_prompt(
         "PREVIOUS TOOL OBSERVATIONS:\n"
         f"{serialized_history}\n\n"
         "Decide the single next action."
+    )
+
+    return apply_language_policy(
+        prompt=base_prompt,
     )
 
 

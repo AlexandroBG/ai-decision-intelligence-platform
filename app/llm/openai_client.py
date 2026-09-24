@@ -1,17 +1,16 @@
 from typing import TypeVar
 
-import httpx
-from google import genai
-from google.genai import errors, types
-from pydantic import BaseModel, ValidationError
+import openai
+from openai import OpenAI
+from pydantic import BaseModel
 
-from app.llm.config import LLMConfig
 from app.llm.contracts import LLMInterpretation
 from app.llm.errors import (
     LLMInputError,
     LLMProviderError,
     LLMResponseError,
 )
+from app.llm.openai_config import OpenAIConfig
 from app.observability.context import get_request_id
 from app.observability.logging import get_logger
 from app.observability.metrics import metrics
@@ -25,49 +24,52 @@ StructuredResponseT = TypeVar(
 logger = get_logger()
 
 
-class GeminiClient:
+class OpenAIClient:
     def __init__(
         self,
-        config: LLMConfig,
+        config: OpenAIConfig,
     ) -> None:
         self._config = config
 
-        self._client = genai.Client(api_key=config.api_key)
+        self._client = OpenAI(
+            api_key=config.api_key,
+        )
 
     def generate_text(
         self,
         prompt: str,
     ) -> str:
-        self._validate_prompt(prompt=prompt)
+        self._validate_prompt(
+            prompt=prompt,
+        )
 
         request_id = get_request_id()
 
         try:
-            response = self._client.models.generate_content(
+            response = self._client.responses.create(
                 model=self._config.model_name,
-                contents=prompt,
+                input=prompt,
             )
 
-        except (
-            errors.APIError,
-            httpx.HTTPError,
-        ) as exc:
+        except openai.OpenAIError as exc:
             self._log_llm_call(
                 request_id=request_id,
                 operation="generate_text",
                 success=False,
             )
 
-            raise LLMProviderError("Gemini request failed.") from exc
+            raise LLMProviderError("OpenAI request failed.") from exc
 
-        if not response.text:
+        response_text = response.output_text
+
+        if not response_text:
             self._log_llm_call(
                 request_id=request_id,
                 operation="generate_text",
                 success=False,
             )
 
-            raise LLMResponseError("Gemini returned an empty response.")
+            raise LLMResponseError("OpenAI returned an empty response.")
 
         self._log_llm_call(
             request_id=request_id,
@@ -75,55 +77,45 @@ class GeminiClient:
             success=True,
         )
 
-        return response.text
+        return response_text
 
     def generate_structured(
         self,
         prompt: str,
         response_model: type[StructuredResponseT],
     ) -> StructuredResponseT:
-        self._validate_prompt(prompt=prompt)
+        self._validate_prompt(
+            prompt=prompt,
+        )
 
         request_id = get_request_id()
 
-        response_schema = response_model.model_json_schema()
-
         try:
-            response = self._client.models.generate_content(
+            response = self._client.responses.parse(
                 model=self._config.model_name,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type=("application/json"),
-                    response_json_schema=(response_schema),
-                ),
+                input=prompt,
+                text_format=response_model,
             )
 
-        except (
-            errors.APIError,
-            httpx.HTTPError,
-        ) as exc:
+        except openai.OpenAIError as exc:
             self._log_llm_call(
                 request_id=request_id,
                 operation="generate_structured",
                 success=False,
             )
 
-            raise LLMProviderError("Gemini request failed.") from exc
+            raise LLMProviderError("OpenAI request failed.") from exc
 
-        try:
-            result = self._parse_structured_response(
-                response=response,
-                response_model=response_model,
-            )
+        result = response.output_parsed
 
-        except LLMResponseError:
+        if result is None:
             self._log_llm_call(
                 request_id=request_id,
                 operation="generate_structured",
                 success=False,
             )
 
-            raise
+            raise LLMResponseError("OpenAI returned an invalid structured response.")
 
         self._log_llm_call(
             request_id=request_id,
@@ -141,43 +133,6 @@ class GeminiClient:
             prompt=prompt,
             response_model=LLMInterpretation,
         )
-
-    @staticmethod
-    def _parse_structured_response(
-        response,
-        response_model: type[StructuredResponseT],
-    ) -> StructuredResponseT:
-        try:
-            if isinstance(
-                response.parsed,
-                response_model,
-            ):
-                return response.parsed
-
-            if response.parsed is not None:
-                return response_model.model_validate(response.parsed)
-
-            response_text = response.text
-
-            if (
-                isinstance(
-                    response_text,
-                    str,
-                )
-                and response_text.strip()
-            ):
-                return response_model.model_validate_json(response_text)
-
-        except (
-            ValidationError,
-            ValueError,
-            TypeError,
-        ) as exc:
-            raise LLMResponseError(
-                "Gemini returned an invalid structured response."
-            ) from exc
-
-        raise LLMResponseError("Gemini returned an invalid structured response.")
 
     @staticmethod
     def _validate_prompt(

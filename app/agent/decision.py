@@ -1,28 +1,11 @@
-from typing import Protocol, TypeVar
-
-from pydantic import BaseModel
-
 from app.agent.contracts import (
     AgentDecision,
     AgentHistory,
 )
 from app.agent.prompts import build_agent_prompt
+from app.llm.protocols import StructuredLLMClient
 from app.tools.catalog import build_tool_catalog
 from app.tools.registry import ToolRegistry
-
-StructuredResponseT = TypeVar(
-    "StructuredResponseT",
-    bound=BaseModel,
-)
-
-
-class StructuredLLMClient(Protocol):
-    def generate_structured(
-        self,
-        prompt: str,
-        response_model: type[StructuredResponseT],
-    ) -> StructuredResponseT:
-        """Generate a structured LLM response."""
 
 
 class AgentDecisionClient:
