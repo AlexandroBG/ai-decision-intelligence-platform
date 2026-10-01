@@ -11,14 +11,14 @@ on:
 jobs:
   test:
     name: Lint and Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.14"
 
@@ -36,16 +36,15 @@ jobs:
 
   docker:
     name: Build Docker Images
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: test
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Build API image
         run: docker build -f Dockerfile.api -t decisionai-api:ci .
 
       - name: Build UI image
         run: docker build -f Dockerfile.ui -t decisionai-ui:ci .
-      
