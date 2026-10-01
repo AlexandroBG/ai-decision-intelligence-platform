@@ -11,6 +11,16 @@ from app.ui.client import (
 )
 
 
+@pytest.fixture(autouse=True)
+def clear_api_base_url_environment(
+    monkeypatch,
+) -> None:
+    monkeypatch.delenv(
+        "DECISIONAI_API_BASE_URL",
+        raising=False,
+    )
+
+
 def test_health_maps_api_response(
     monkeypatch,
 ) -> None:
@@ -140,6 +150,93 @@ def test_create_decision_sends_question(
     assert captured["json"] == {
         "question": "What happened?",
     }
+
+
+def test_client_uses_default_api_base_url(
+    monkeypatch,
+) -> None:
+    captured: dict[
+        str,
+        object,
+    ] = {}
+
+    def fake_request(
+        **kwargs,
+    ) -> httpx.Response:
+        captured.update(kwargs)
+
+        request = httpx.Request(
+            method=kwargs["method"],
+            url=kwargs["url"],
+        )
+
+        return httpx.Response(
+            status_code=200,
+            json={
+                "status": "ok",
+                "service": "decisionai-api",
+                "version": "0.1.0",
+            },
+            request=request,
+        )
+
+    monkeypatch.setattr(
+        httpx,
+        "request",
+        fake_request,
+    )
+
+    client = DecisionAPIClient()
+
+    client.health()
+
+    assert captured["url"] == "http://127.0.0.1:8000/health"
+
+
+def test_client_uses_api_base_url_from_environment(
+    monkeypatch,
+) -> None:
+    captured: dict[
+        str,
+        object,
+    ] = {}
+
+    monkeypatch.setenv(
+        "DECISIONAI_API_BASE_URL",
+        "https://decisionai-api.example.com",
+    )
+
+    def fake_request(
+        **kwargs,
+    ) -> httpx.Response:
+        captured.update(kwargs)
+
+        request = httpx.Request(
+            method=kwargs["method"],
+            url=kwargs["url"],
+        )
+
+        return httpx.Response(
+            status_code=200,
+            json={
+                "status": "ok",
+                "service": "decisionai-api",
+                "version": "0.1.0",
+            },
+            request=request,
+        )
+
+    monkeypatch.setattr(
+        httpx,
+        "request",
+        fake_request,
+    )
+
+    client = DecisionAPIClient()
+
+    client.health()
+
+    assert captured["url"] == "https://decisionai-api.example.com/health"
 
 
 def test_client_uses_configured_timeout(

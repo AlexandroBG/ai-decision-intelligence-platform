@@ -1,3 +1,4 @@
+import os
 import time
 from typing import Annotated
 from uuid import uuid4
@@ -43,10 +44,25 @@ SERVICE_NAME = "decisionai-api"
 
 REQUEST_ID_HEADER = "X-Request-ID"
 
-ALLOWED_ORIGINS = [
+DEFAULT_ALLOWED_ORIGINS = [
     "http://localhost:8501",
     "http://127.0.0.1:8501",
 ]
+
+ALLOWED_ORIGINS_ENV = "DECISIONAI_ALLOWED_ORIGINS"
+
+
+def load_allowed_origins() -> list[str]:
+    configured_origins = os.getenv(
+        ALLOWED_ORIGINS_ENV,
+    )
+
+    if not configured_origins:
+        return DEFAULT_ALLOWED_ORIGINS.copy()
+
+    return [
+        origin.strip() for origin in configured_origins.split(",") if origin.strip()
+    ]
 
 
 logger = get_logger()
@@ -60,7 +76,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=load_allowed_origins(),
     allow_credentials=False,
     allow_methods=[
         "GET",

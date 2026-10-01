@@ -1,3 +1,4 @@
+import os
 from typing import Any
 
 import httpx
@@ -7,6 +8,10 @@ from app.api.contracts import (
     DecisionResponse,
     HealthResponse,
 )
+
+DEFAULT_API_BASE_URL = "http://127.0.0.1:8000"
+
+API_BASE_URL_ENV = "DECISIONAI_API_BASE_URL"
 
 
 class DecisionAPIError(Exception):
@@ -42,10 +47,15 @@ class DecisionAPIHTTPError(DecisionAPIError):
 class DecisionAPIClient:
     def __init__(
         self,
-        base_url: str = "http://127.0.0.1:8000",
+        base_url: str | None = None,
         timeout_seconds: float = 60.0,
     ) -> None:
-        self._base_url = base_url.rstrip("/")
+        resolved_base_url = base_url or os.getenv(
+            API_BASE_URL_ENV,
+            DEFAULT_API_BASE_URL,
+        )
+
+        self._base_url = resolved_base_url.rstrip("/")
         self._timeout_seconds = timeout_seconds
 
     def health(self) -> HealthResponse:
