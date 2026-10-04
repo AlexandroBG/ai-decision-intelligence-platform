@@ -22,11 +22,14 @@ jobs:
         with:
           python-version: "3.14"
 
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
+      - name: Install pinned pip
+        run: python -m pip install "pip==26.2.1"
 
-      - name: Install project
-        run: python -m pip install -e ".[dev]"
+      - name: Install locked development dependencies
+        run: python -m pip install -r requirements-dev.lock
+
+      - name: Install project without resolving dependencies
+        run: python -m pip install -e . --no-deps
 
       - name: Run Ruff
         run: python -m ruff check .
