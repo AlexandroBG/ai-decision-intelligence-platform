@@ -1,0 +1,734 @@
+# Phase 16 — Docker, CI/CD, Cloud Deployment and Reproducible Builds
+
+## Status
+
+Completed.
+
+## Objective
+
+Build a production-style delivery pipeline for DecisionAI that can package the API and UI into containers, validate every change automatically, deploy immutable application versions, authenticate GitHub Actions to AWS without static credentials, publish images to Amazon ECR, register and update Amazon ECS task definitions, preserve low-cost shutdown behavior, and reproduce dependency versions consistently across local, CI, Docker, and cloud environments.
+
+## Architecture Overview
+
+```text
+Developer
+   |
+   v
+git push main
+   |
+   v
+GitHub Actions CI
+   |
+   +--> install locked dev dependencies
+   +--> Ruff
+   +--> pytest
+   +--> build API image
+   +--> build UI image
+   |
+   v
+GitHub Actions Deploy
+   |
+   +--> GitHub OIDC
+   +--> temporary AWS credentials
+   +--> build images from production lock
+   +--> tag images with tested Git SHA
+   +--> push to Amazon ECR
+   +--> register ECS task definitions
+   +--> update ECS services
+   |
+   v
+Amazon ECS Fargate
+```
+
+The API and UI are deployed as separate ECS services.
+
+## Containerization
+
+DecisionAI uses:
+
+```text
+Dockerfile.api
+Dockerfile.ui
+```
+
+The API container runs FastAPI through Uvicorn and exposes port 8000.
+
+Runtime command:
+
+```text
+python -m uvicorn app.api.main:app --host 0.0.0.0 --port ${PORT:-8000}
+```
+
+The UI container runs Streamlit and exposes port 8501.
+
+Runtime command:
+
+```text
+python -m streamlit run app/ui/streamlit_app.py   --server.address 0.0.0.0   --server.port ${PORT:-8501}
+```
+
+## Immutable Base Image
+
+The Python base image is pinned by digest:
+
+```text
+python:3.14-slim@sha256:c3e521df8b2b498a7a682e7e18676771cb80c6b75b8699af886b2d554ce40151
+```
+
+This makes the base runtime image explicit rather than relying only on a mutable tag.
+
+## Dependency Reproducibility Problem
+
+The project originally declared direct dependencies in `pyproject.toml` without exact versions.
+
+That caused dependency drift: the same source commit could resolve different package versions locally and in GitHub builds.
+
+Observed examples included differences in:
+
+```text
+google-genai
+openai
+fastapi
+streamlit
+uvicorn
+pandas
+```
+
+This showed that source control alone was not enough to guarantee a reproducible runtime.
+
+## Chosen Locking Strategy
+
+The project adopted `pip-tools`.
+
+```text
+pyproject.toml
+     |
+     v
+pip-compile
+     |
+     +--> requirements.lock
+     |
+     +--> requirements-dev.lock
+```
+
+`requirements.lock` contains exact production dependency versions.
+
+`requirements-dev.lock` contains production dependencies plus development tooling such as `pytest` and `ruff`.
+
+## Locked Dependency Versions
+
+Representative exact versions in the validated lock include:
+
+```text
+fastapi==0.142.2
+google-genai==2.28.0
+openai==3.24.0
+pandas==3.0.6
+streamlit==1.65.0
+numpy==2.5.3
+scikit-learn==1.9.1
+scipy==1.18.1
+pydantic==2.13.5
+httpx==0.28.1
+uvicorn==0.54.0
+pytest==9.1.1
+ruff==0.16.10
+```
+
+## Build Tool Pinning
+
+The build backend dependency is pinned:
+
+```text
+setuptools==84.0.0
+```
+
+`pip` is also pinned in CI and Docker:
+
+```text
+pip==26.2.1
+```
+
+## Project Installation Model
+
+Runtime dependencies are installed from the lock first.
+
+The project is then installed without dependency resolution:
+
+```text
+pip install --no-deps .
+```
+
+CI uses:
+
+```text
+pip install -e . --no-deps
+```
+
+This prevents a second dependency-resolution pass from silently changing the locked environment.
+
+## Local Clean-Environment Validation
+
+A dedicated Python 3.14 virtual environment was created from scratch.
+
+Validation sequence:
+
+```text
+create clean Python 3.14 venv
+install requirements-dev.lock
+install project with --no-deps
+run Ruff
+run pytest
+```
+
+Result:
+
+```text
+All checks passed.
+735 passed
+1 known google-genai deprecation warning
+```
+
+This demonstrated that the lock file could reproduce a working environment from a clean installation.
+
+## Docker Reproducibility Validation
+
+Both images were built locally from the production lock:
+
+```text
+decisionai-api:locktest
+decisionai-ui:locktest
+```
+
+Both builds succeeded.
+
+Package versions were then inspected inside the containers.
+
+Validated versions:
+
+```text
+fastapi 0.142.2
+pandas 3.0.6
+streamlit 1.65.0
+openai 3.24.0
+```
+
+The API and UI containers reported the same locked versions.
+
+## Continuous Integration
+
+GitHub Actions runs CI on:
+
+```text
+push to main
+pull request to main
+```
+
+The CI pipeline performs:
+
+```text
+checkout
+setup Python 3.14
+install pip 26.2.1
+install requirements-dev.lock
+install project --no-deps
+Ruff
+pytest
+Docker API build
+Docker UI build
+```
+
+The Docker build job depends on the test job.
+
+## CI Validation
+
+Validated commit:
+
+```text
+7264223
+Pin dependencies for reproducible builds
+```
+
+CI result:
+
+```text
+Success
+1m 56s
+```
+
+This confirmed that the locked development environment works in GitHub Actions.
+
+## Continuous Deployment
+
+The deploy workflow runs after successful CI on `main`.
+
+Key properties:
+
+- deploy only after successful push-based CI
+- PR-triggered CI does not deploy
+- checkout exact tested commit SHA
+- build from the exact tested source
+- tag images with the full Git SHA
+- publish images to ECR
+- register new ECS task-definition revisions
+- update services without forcing a scale-up
+
+## Immutable Deployment Identity
+
+The deployment uses the exact Git SHA as the image tag.
+
+Example:
+
+```text
+72642232fe1347e3f8f18a32a713fc255e313f8d
+```
+
+This creates a direct mapping:
+
+```text
+source commit
+CI result
+container image
+ECS deployment
+```
+
+## AWS Region and Core Resources
+
+Region:
+
+```text
+eu-north-1
+```
+
+Core resources:
+
+```text
+ECR
+- decisionai-api
+- decisionai-ui
+
+ECS
+- decisionai-cluster
+- decisionai-api-service
+- decisionai-ui-service
+
+CloudWatch
+- /ecs/decisionai-api
+- /ecs/decisionai-ui
+
+Secrets Manager
+- decisionai/gemini-api-key
+
+Cloud Map
+- decisionai.local
+```
+
+The UI calls the API internally through:
+
+```text
+http://decisionai-api.decisionai.local:8000
+```
+
+## Network Design
+
+The deployment uses the default public VPC and public subnets.
+
+The API is not directly exposed to the internet.
+
+The API security group allows port 8000 only from the UI security group.
+
+The UI security group exposes the Streamlit service.
+
+This avoids introducing an Application Load Balancer or NAT Gateway and keeps the environment simple and low cost.
+
+## Cost-Control Design
+
+The environment is intentionally shut down when not being demonstrated.
+
+Both ECS services can remain at:
+
+```text
+desiredCount = 0
+```
+
+The deployment workflow does not pass `--desired-count`, so service updates preserve the current scale.
+
+Validated state:
+
+```text
+decisionai-api-service -> desired 0, running 0, pending 0
+decisionai-ui-service  -> desired 0, running 0, pending 0
+```
+
+This allows new revisions to be prepared without incurring continuous runtime cost.
+
+## GitHub OIDC Authentication
+
+GitHub Actions authenticates to AWS through OpenID Connect.
+
+No long-lived AWS access keys are stored in GitHub.
+
+Deployment role:
+
+```text
+decisionai-github-deploy-role
+```
+
+The trust configuration validates:
+
+```text
+aud = sts.amazonaws.com
+```
+
+A key implementation issue appeared during setup.
+
+The original trust policy used the older GitHub subject format and failed with:
+
+```text
+sts:AssumeRoleWithWebIdentity
+```
+
+The repository uses GitHub's newer immutable-ID subject behavior.
+
+The working subject conceptually follows:
+
+```text
+repo:<owner>@<owner-id>/<repo>@<repo-id>:ref:refs/heads/main
+```
+
+Using immutable IDs protects the trust boundary better than relying only on mutable repository and owner names.
+
+## OIDC Security Properties
+
+The final setup provides:
+
+- no static AWS deployment keys
+- short-lived credentials
+- audience restriction
+- branch restriction
+- immutable repository identity
+- limited deployment role
+- controlled `iam:PassRole`
+
+## Deployment IAM Policy
+
+The deployment role is scoped to the resources required by the pipeline.
+
+Permissions include:
+
+- ECR authorization
+- image push to the two DecisionAI repositories
+- ECS task-definition registration
+- ECS service description
+- ECS service update for the two DecisionAI services
+- `iam:PassRole` only for the ECS task execution role
+
+The CI/CD role is not an AWS administrator role.
+
+## ECS Task Roles
+
+The task definitions use:
+
+```text
+ecsTaskExecutionRole
+```
+
+No application `taskRoleArn` is currently required.
+
+## Secrets Management
+
+The Gemini API key is stored in AWS Secrets Manager.
+
+The secret is not committed to the repository and is not embedded in the image.
+
+This preserves separation between:
+
+```text
+source
+container image
+runtime secret
+```
+
+## Deployment Workflow Validation
+
+The final Phase 16 deployment succeeded.
+
+Validated result:
+
+```text
+Deploy #2
+Success
+2m 14s
+```
+
+The workflow checked out:
+
+```text
+72642232fe1347e3f8f18a32a713fc255e313f8d
+```
+
+OIDC authentication succeeded.
+
+The production images were then built using `requirements.lock`.
+
+## ECR Publication
+
+The UI image was pushed with the full Git SHA.
+
+Validated digest:
+
+```text
+sha256:d60ca93a79736ef3537831b38d7c7897a77ad756b9a557b9768904330646f959
+```
+
+This artifact can be traced directly to the tested source revision.
+
+## ECS Revisions
+
+The final deployment registered:
+
+```text
+decisionai-api:5
+decisionai-ui:5
+```
+
+Final service state:
+
+```text
+decisionai-api-service -> decisionai-api:5 -> 0 / 0 / 0
+decisionai-ui-service  -> decisionai-ui:5  -> 0 / 0 / 0
+```
+
+The values represent:
+
+```text
+desired / running / pending
+```
+
+## Deployment Safety
+
+The workflow registers both task definitions before updating either service.
+
+This reduces the chance of a partially prepared release.
+
+Deployment and scaling remain separate operational decisions.
+
+## Reproducibility Chain
+
+```text
+pyproject.toml
+       |
+       v
+pip-compile
+       |
+       +--> requirements.lock
+       |
+       +--> requirements-dev.lock
+       |
+       v
+local clean environment
+       |
+       v
+GitHub CI
+       |
+       v
+Docker build
+       |
+       v
+ECR image
+       |
+       v
+ECS task definition
+```
+
+## Validation Summary
+
+### Local
+
+```text
+Ruff: pass
+pytest: 735 passed
+Docker API build: pass
+Docker UI build: pass
+container dependency inspection: pass
+```
+
+### GitHub Actions
+
+```text
+CI: success
+Deploy: success
+OIDC: success
+```
+
+### AWS
+
+```text
+ECR push: success
+ECS task registration: success
+ECS service update: success
+API revision: 5
+UI revision: 5
+services remain at desiredCount 0
+```
+
+## Engineering Decisions
+
+### Use pip-tools instead of Poetry
+
+Reason: preserve the existing `pip`/`pyproject.toml` workflow and add reproducibility incrementally.
+
+### Maintain production and development locks
+
+Reason: production images do not need test/lint tooling, while CI does.
+
+### Pin the Docker base image by digest
+
+Reason: avoid ambiguity from mutable base-image tags.
+
+### Use Git SHA image tags
+
+Reason: link tested source directly to deployable artifacts.
+
+### Use GitHub OIDC instead of AWS access keys
+
+Reason: short-lived credentials reduce secret-management risk.
+
+### Restrict OIDC with immutable GitHub IDs
+
+Reason: immutable repository identity is safer than name-only trust.
+
+### Preserve ECS desired count
+
+Reason: deployment should not automatically create runtime cost when the environment is intentionally stopped.
+
+### Avoid ALB and NAT Gateway
+
+Reason: current project needs favor low cost and simplicity.
+
+## Issues Discovered
+
+### Dependency Drift
+
+Same source revision, different dependency versions.
+
+Resolution: exact lock files.
+
+### OIDC Subject Mismatch
+
+Old GitHub subject format failed.
+
+Resolution: immutable owner/repository ID subject.
+
+### Docker Credential Helper Failure on Windows
+
+A local ECR login issue required a temporary Docker config during manual deployment.
+
+The temporary credential material was removed immediately.
+
+The final GitHub deployment does not rely on that workaround.
+
+### Streamlit Currency Rendering
+
+Dollar amounts were interpreted by Markdown.
+
+Resolution: escape dollar signs before rendering.
+
+### Provider Quota Handling
+
+A real Gemini quota failure was initially treated too generically.
+
+Resolution: dedicated HTTP 429 handling in client, API, logs, and UI.
+
+## Known Limitations
+
+Current limitations:
+
+- no Application Load Balancer
+- no custom domain
+- no project-managed TLS termination
+- no autoscaling policy
+- no infrastructure-as-code yet
+- public UI IP is ephemeral
+- no multi-region deployment
+- no blue/green strategy
+- no automated rollback
+- ECS deployment circuit breaker is not enabled
+- CloudWatch retention may still need final operational tuning
+- `aws ecs update-service` produces verbose JSON in Actions logs
+
+These are future improvements, not blockers for the current portfolio release.
+
+## What Was Learned
+
+Production engineering requires aligning:
+
+- source identity
+- dependency identity
+- container identity
+- cloud identity
+- runtime configuration
+- secrets
+- tests
+- cost controls
+
+Key lessons:
+
+1. A Git commit is not reproducible if dependency resolution is unconstrained.
+2. Cloud authentication should avoid static credentials when possible.
+3. Immutable identifiers are safer than mutable names.
+4. Deployment and scaling should be independent.
+5. A green Docker build is not enough; installed versions should be validated.
+6. CI should validate the same dependency graph production uses.
+7. Cost-aware architecture is a valid engineering requirement.
+
+## Closure Criteria
+
+Phase 16 is complete because:
+
+- API and UI are containerized
+- Docker builds succeed
+- Python base image is pinned by digest
+- production dependencies are locked
+- development dependencies are locked
+- clean-environment reproduction succeeds
+- Ruff passes
+- 735 tests pass
+- CI consumes the development lock
+- Docker consumes the production lock
+- GitHub Actions deployment works
+- GitHub OIDC works
+- no static AWS deploy keys are required
+- ECR publication works
+- ECS task registration works
+- ECS service update works
+- exact tested Git SHA is deployed
+- desiredCount remains unchanged
+- final API and UI task revisions are registered
+- environment remains at zero running tasks when not in use
+
+## Final Phase State
+
+```text
+Docker                         ✅
+CI                             ✅
+GitHub Actions CD              ✅
+AWS ECR                        ✅
+AWS ECS                        ✅
+GitHub OIDC                    ✅
+No static AWS deploy keys      ✅
+Immutable SHA image tags       ✅
+Pinned Python base image       ✅
+requirements.lock              ✅
+requirements-dev.lock          ✅
+Pinned pip                     ✅
+Clean environment validation   ✅
+Ruff                           ✅
+735 tests                      ✅
+Cloud deployment validation    ✅
+Cost-preserving desiredCount   ✅
+```
+
+---
+
+Phase 16 closed.

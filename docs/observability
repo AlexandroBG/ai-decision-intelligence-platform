@@ -1,0 +1,343 @@
+# Phase 14 — Observability
+
+## Status
+
+Completed.
+
+## Objective
+
+Establish practical observability foundations for DecisionAI so production behavior can be inspected, failures can be understood, and operational issues can be investigated without exposing sensitive business inputs.
+
+DecisionAI combines deterministic analytics, machine learning, LLM interpretation, and agentic workflows. Because this architecture mixes deterministic and probabilistic components, observability is required not only for infrastructure health but also for reasoning flow, tool usage, provider failures, and grounded-output behavior.
+
+## Scope
+
+This phase covers observability practices that were actually implemented and validated:
+
+- structured operational logging
+- request-level traceability
+- agent/tool execution visibility
+- provider error visibility
+- rate-limit visibility
+- privacy-preserving log design
+- AWS CloudWatch log collection
+- deployment-state inspection
+
+This phase did not introduce a full distributed tracing stack, metrics backend, dashboards, alerting system, or model-drift platform.
+
+## Observability Principles
+
+1. Logs must help explain what happened without leaking sensitive inputs.
+2. Tool execution should be visible at the control-flow level.
+3. Provider failures must map to explicit, inspectable application behavior.
+4. Request identity should make individual executions traceable.
+5. Observability must support debugging without turning logs into a source of private business data.
+6. Operational signals should remain useful locally and in AWS.
+
+## Structured Logging
+
+DecisionAI uses event-style operational logging.
+
+A representative tool-call event includes:
+
+```text
+request_id
+event
+step
+tool_name
+success
+```
+
+The privacy-sensitive logging path intentionally excludes:
+
+- raw tool arguments
+- raw tool outputs
+- raw error payloads when unnecessary
+- secrets
+- API keys
+- sensitive business data
+
+Tests explicitly verify that argument strings, output strings, and error strings are not logged.
+
+## Request-Level Traceability
+
+A `request_id` allows an execution to be followed across important events.
+
+This supports investigation of questions such as:
+
+- Which tool was selected?
+- At what workflow step did it run?
+- Did the call succeed?
+- Did the provider fail?
+- Was a retry attempted?
+- Did the request stop because of quota exhaustion?
+
+This is especially important in an agentic workflow because failures can occur in orchestration, tool execution, provider access, grounding checks, coverage checks, or API handling.
+
+## Tool Execution Visibility
+
+DecisionAI records control-flow-level tool execution without storing tool payloads.
+
+Representative event shape:
+
+```text
+request_id=<id> event=tool_call step=<n> tool_name=<name> success=<true|false>
+```
+
+This provides useful operational visibility while preserving privacy.
+
+## Provider Reliability Observability
+
+The LLM client distinguishes transient provider failures from rate-limit or quota failures.
+
+Transient retryable failures include:
+
+- HTTP 500
+- HTTP 502
+- HTTP 503
+- HTTP 504
+- network failures
+- timeout failures
+
+Rate limits are handled separately.
+
+A provider quota or rate-limit condition maps to a dedicated application error type and log event:
+
+```text
+event=provider_rate_limit status_code=429
+```
+
+This separation matters because quota exhaustion is not the same operational condition as temporary service unavailability.
+
+## Retry Policy
+
+The Gemini client uses bounded retry behavior:
+
+```text
+maximum attempts: 3
+delays: 0.5s, 1.0s
+retry: transient server/network failures
+do not retry: HTTP 429
+```
+
+The non-retry behavior for 429 is explicitly tested.
+
+## API-Level Failure Semantics
+
+Provider quota exhaustion returns:
+
+```text
+HTTP 429
+AI provider quota or rate limit has been reached.
+```
+
+Generic provider failures remain mapped separately.
+
+This allows clients and operators to distinguish quota exhaustion from temporary provider unavailability.
+
+## UI-Level Failure Visibility
+
+The Streamlit UI also handles provider quota exhaustion explicitly:
+
+```text
+AI provider quota or rate limit has been reached.
+Please try again after the provider quota resets.
+```
+
+This provides a clearer user-facing operational signal than a generic failure message.
+
+## Privacy-Preserving Observability
+
+A deliberate design choice in this phase was to preserve useful control-flow visibility without exposing business content.
+
+DecisionAI therefore prefers:
+
+```text
+who/what/when/success
+```
+
+over:
+
+```text
+full arguments/full outputs/full errors
+```
+
+This is a conscious tradeoff between debugging detail and privacy risk.
+
+## Cloud Logging
+
+AWS CloudWatch log groups are configured for the deployed services:
+
+```text
+/ecs/decisionai-api
+/ecs/decisionai-ui
+```
+
+These provide the cloud-side destination for ECS container logs.
+
+At this project stage, CloudWatch is used instead of adding another observability platform.
+
+## Deployment Observability
+
+The deployment workflow exposes key release-state information:
+
+- exact Git commit SHA
+- OIDC authentication success
+- ECR image build/push
+- ECS task-definition revision
+- ECS desired count
+- ECS running count
+- ECS pending count
+
+This makes releases operationally inspectable.
+
+The workflow has confirmed that deployments preserve:
+
+```text
+desiredCount = 0
+runningCount = 0
+pendingCount = 0
+```
+
+when the environment is intentionally stopped.
+
+## Real Failure Modes Observed
+
+### Gemini 503
+
+Intermittent provider failures were observed.
+
+Response:
+
+- add bounded transient retries
+- keep retry count limited
+
+### Gemini 429
+
+A real provider quota exhaustion returned:
+
+```text
+429 RESOURCE_EXHAUSTED
+```
+
+Response:
+
+- do not retry
+- map to a dedicated application error
+- return HTTP 429
+- log a provider rate-limit event
+- show a specific UI message
+
+### Agent Tool-Call Failure
+
+A live agent execution once produced failed deterministic tool calls even though the deterministic tools themselves worked with valid arguments.
+
+Because privacy-preserving logs intentionally omit raw tool arguments, the failure was observable but the exact malformed payload was not stored.
+
+This is an accepted tradeoff and an area for future improvement, potentially through opt-in secure debug traces in non-production environments.
+
+## Validation
+
+Observability-related behavior was validated with automated tests covering:
+
+- transient provider retries
+- 429 non-retry behavior
+- rate-limit error mapping
+- API 429 semantics
+- UI rate-limit handling
+- privacy-safe logging
+- tool-call event logging
+
+Full project validation remained green:
+
+```text
+Ruff: clean
+pytest: 735 passed
+warning: 1 known google-genai deprecation warning
+```
+
+## Limitations
+
+Not yet implemented:
+
+- OpenTelemetry distributed tracing
+- Prometheus metrics
+- Grafana dashboards
+- automated alerting
+- SLO/SLA dashboards
+- token-cost dashboards
+- latency histograms
+- model-quality drift monitoring
+- secure replayable traces
+- centralized cross-service tracing beyond request IDs
+
+These are not blockers for the current project stage.
+
+## Engineering Decisions
+
+### Prefer structured events over verbose payload logs
+
+Reason: preserve operational usefulness while reducing exposure risk.
+
+### Treat HTTP 429 as a distinct operational state
+
+Reason: quota exhaustion should not trigger transient retry behavior.
+
+### Keep the observability stack lightweight
+
+Reason: the project prioritizes simplicity, low cost, and production fundamentals over premature platform complexity.
+
+### Preserve privacy over maximum debugging detail
+
+Reason: DecisionAI may process business information, so raw tool payloads should not routinely enter logs.
+
+## What Was Learned
+
+Observability for AI systems is broader than server uptime.
+
+Useful visibility must cover:
+
+- orchestration
+- tool execution
+- provider behavior
+- grounding and coverage failures
+- quota failures
+- deployment state
+- runtime state
+
+The phase also reinforced that good observability does not mean logging everything. It means logging the minimum useful evidence required to diagnose the system safely.
+
+## Closure Criteria
+
+Phase 14 is complete because:
+
+- structured runtime logging exists
+- requests can be traced through major execution events
+- tool execution is observable
+- provider rate limits are explicitly observable
+- retry behavior is explicit and tested
+- API/UI error semantics distinguish key provider states
+- logs avoid sensitive tool payloads
+- cloud log destinations exist for API and UI
+- deployment state is inspectable
+- automated tests validate the critical behavior
+
+## Future Improvements
+
+Potential future work:
+
+- OpenTelemetry tracing
+- structured JSON logs
+- latency/token metrics
+- CloudWatch dashboards
+- provider-failure alerting
+- agent-step duration metrics
+- evaluation-quality production metrics
+- secure debug traces
+- automated cost monitoring
+
+These should be added when real operational needs justify them.
+
+---
+
+Phase 14 closed.
