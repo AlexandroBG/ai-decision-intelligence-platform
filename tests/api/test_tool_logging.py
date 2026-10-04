@@ -100,6 +100,22 @@ def test_runtime_service_logs_tool_usage(
 
         assert len(tool_records) == 2
 
+        summary_records = [
+            record
+            for record in caplog.records
+            if (
+                record.name == "decisionai"
+                and "successful_tool_calls=" in record.getMessage()
+            )
+        ]
+
+        assert len(summary_records) == 1
+        summary_message = summary_records[0].getMessage()
+        assert summary_message == (
+            f"request_id={request_id} tool_calls=2 "
+            "successful_tool_calls=1 failed_tool_calls=1"
+        )
+
         first_message = tool_records[0].getMessage()
 
         second_message = tool_records[1].getMessage()
@@ -120,7 +136,7 @@ def test_runtime_service_logs_tool_usage(
 
         assert "success=false" in second_message
 
-        combined_messages = first_message + "\n" + second_message
+        combined_messages = f"{first_message}\n{second_message}\n{summary_message}"
 
         assert PRIVATE_ARGUMENT not in combined_messages
 
@@ -130,3 +146,37 @@ def test_runtime_service_logs_tool_usage(
 
     finally:
         reset_request_id(token)
+
+
+def test_runtime_service_logs_separate_summaries_per_request_id(
+    caplog,
+) -> None:
+    service = RuntimeDecisionService(runner=FakeRunner())
+
+    with caplog.at_level(
+        logging.INFO,
+        logger="decisionai",
+    ):
+        for request_id in ("first-request", "second-request"):
+            token = set_request_id(request_id)
+
+            try:
+                service.decide(
+                    request=DecisionRequest(question="What happened?")
+                )
+            finally:
+                reset_request_id(token)
+
+    summary_messages = [
+        record.getMessage()
+        for record in caplog.records
+        if (
+            record.name == "decisionai"
+            and "successful_tool_calls=" in record.getMessage()
+        )
+    ]
+
+    assert summary_messages == [
+        "request_id=first-request tool_calls=2 successful_tool_calls=1 failed_tool_calls=1",
+        "request_id=second-request tool_calls=2 successful_tool_calls=1 failed_tool_calls=1",
+    ]

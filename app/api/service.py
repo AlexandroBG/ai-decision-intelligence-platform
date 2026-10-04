@@ -71,11 +71,21 @@ class RuntimeDecisionService:
         result: AgentRunResult,
     ) -> None:
         request_id = get_request_id()
+        tool_calls = 0
+        successful_tool_calls = 0
+        failed_tool_calls = 0
 
         for step, observation in enumerate(
             result.history.observations,
             start=1,
         ):
+            tool_calls += 1
+
+            if observation.result.success:
+                successful_tool_calls += 1
+            else:
+                failed_tool_calls += 1
+
             metrics.increment("tool_calls_total")
 
             logger.info(
@@ -85,6 +95,17 @@ class RuntimeDecisionService:
                 observation.call.tool_name,
                 str(observation.result.success).lower(),
             )
+
+        logger.info(
+            (
+                "request_id=%s tool_calls=%s successful_tool_calls=%s "
+                "failed_tool_calls=%s"
+            ),
+            request_id,
+            tool_calls,
+            successful_tool_calls,
+            failed_tool_calls,
+        )
 
 
 class UnavailableDecisionService:
