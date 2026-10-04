@@ -1,0 +1,199 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: decisionai-production
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: eu-north-1
+  AWS_ACCOUNT_ID: "189761005451"
+  ECS_CLUSTER: decisionai-cluster
+
+  API_ECR_REPOSITORY: decisionai-api
+  API_ECS_SERVICE: decisionai-api-service
+  API_TASK_FAMILY: decisionai-api
+
+  UI_ECR_REPOSITORY: decisionai-ui
+  UI_ECS_SERVICE: decisionai-ui-service
+  UI_TASK_FAMILY: decisionai-ui
+
+jobs:
+  deploy:
+    name: Deploy to AWS ECS
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout tested commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Define deployment SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "DEPLOY_SHA=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_ENV"
+
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::189761005451:role/decisionai-github-deploy-role
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: decisionai-github-${{ github.run_id }}
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Define image URIs
+        id: images
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+          echo "api_image=${REGISTRY}/${API_ECR_REPOSITORY}:${DEPLOY_SHA}" >> "$GITHUB_OUTPUT"
+          echo "ui_image=${REGISTRY}/${UI_ECR_REPOSITORY}:${DEPLOY_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Build API image
+        run: |
+          docker build \
+            -f Dockerfile.api \
+            -t "${{ steps.images.outputs.api_image }}" \
+            .
+
+      - name: Build UI image
+        run: |
+          docker build \
+            -f Dockerfile.ui \
+            -t "${{ steps.images.outputs.ui_image }}" \
+            .
+
+      - name: Push API image
+        run: docker push "${{ steps.images.outputs.api_image }}"
+
+      - name: Push UI image
+        run: docker push "${{ steps.images.outputs.ui_image }}"
+
+      - name: Prepare API task definition
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          aws ecs describe-task-definition \
+            --task-definition "$API_TASK_FAMILY" \
+            --query taskDefinition \
+            --output json \
+          | jq \
+              --arg IMAGE "${{ steps.images.outputs.api_image }}" \
+              '
+              del(
+                .taskDefinitionArn,
+                .revision,
+                .status,
+                .requiresAttributes,
+                .compatibilities,
+                .registeredAt,
+                .registeredBy
+              )
+              | .containerDefinitions[0].image = $IMAGE
+              ' \
+          > api-task-definition.json
+
+      - name: Prepare UI task definition
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          aws ecs describe-task-definition \
+            --task-definition "$UI_TASK_FAMILY" \
+            --query taskDefinition \
+            --output json \
+          | jq \
+              --arg IMAGE "${{ steps.images.outputs.ui_image }}" \
+              '
+              del(
+                .taskDefinitionArn,
+                .revision,
+                .status,
+                .requiresAttributes,
+                .compatibilities,
+                .registeredAt,
+                .registeredBy
+              )
+              | .containerDefinitions[0].image = $IMAGE
+              ' \
+          > ui-task-definition.json
+
+      - name: Register API task definition
+        id: api-task
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TASK_DEFINITION_ARN="$(
+            aws ecs register-task-definition \
+              --cli-input-json file://api-task-definition.json \
+              --query 'taskDefinition.taskDefinitionArn' \
+              --output text
+          )"
+
+          echo "task_definition_arn=${TASK_DEFINITION_ARN}" >> "$GITHUB_OUTPUT"
+
+      - name: Register UI task definition
+        id: ui-task
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TASK_DEFINITION_ARN="$(
+            aws ecs register-task-definition \
+              --cli-input-json file://ui-task-definition.json \
+              --query 'taskDefinition.taskDefinitionArn' \
+              --output text
+          )"
+
+          echo "task_definition_arn=${TASK_DEFINITION_ARN}" >> "$GITHUB_OUTPUT"
+
+      - name: Update API service
+        run: |
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$API_ECS_SERVICE" \
+            --task-definition "${{ steps.api-task.outputs.task_definition_arn }}" \
+            --no-cli-pager
+
+      - name: Update UI service
+        run: |
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$UI_ECS_SERVICE" \
+            --task-definition "${{ steps.ui-task.outputs.task_definition_arn }}" \
+            --no-cli-pager
+
+      - name: Show deployed task definitions
+        run: |
+          aws ecs describe-services \
+            --cluster "$ECS_CLUSTER" \
+            --services "$API_ECS_SERVICE" "$UI_ECS_SERVICE" \
+            --query 'services[*].[serviceName,taskDefinition,desiredCount,runningCount,pendingCount]' \
+            --output table
