@@ -40,6 +40,13 @@ class BaseTool(ABC):
                 success=False,
                 error=str(exc),
             )
+        # Contain unexpected failures from tool implementations at this boundary.
+        except Exception:  # noqa: BLE001
+            return ToolResult(
+                tool_name=self.definition.name,
+                success=False,
+                error="Tool execution failed.",
+            )
 
         if result.tool_name != self.definition.name:
             return ToolResult(

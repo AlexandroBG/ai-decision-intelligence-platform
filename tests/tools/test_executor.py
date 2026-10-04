@@ -1,5 +1,3 @@
-import pytest
-
 from app.tools.base import BaseTool
 from app.tools.contracts import (
     ToolCall,
@@ -292,16 +290,14 @@ def test_executor_external_unknown_tool_returns_failure() -> None:
     assert result.error == "Unknown tool: missing_tool"
 
 
-def test_executor_does_not_hide_unexpected_tool_errors() -> None:
-    executor = build_executor()
+def test_executor_returns_safe_failure_for_unexpected_tool_errors() -> None:
+    result = build_executor().execute_payload(
+        {
+            "tool_name": "buggy_tool",
+            "arguments": {},
+        }
+    )
 
-    with pytest.raises(
-        RuntimeError,
-        match="Unexpected programming bug.",
-    ):
-        executor.execute_payload(
-            {
-                "tool_name": "buggy_tool",
-                "arguments": {},
-            }
-        )
+    assert result.success is False
+    assert result.error == "Tool execution failed."
+    assert "Unexpected programming bug." not in result.error

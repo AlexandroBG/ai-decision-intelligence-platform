@@ -162,17 +162,32 @@ def test_tool_converts_expected_error_to_failure_result() -> None:
     assert result.error == "Example execution failure."
 
 
-def test_tool_does_not_hide_unexpected_errors() -> None:
+def test_tool_returns_safe_failure_for_unexpected_errors() -> None:
     tool = UnexpectedFailureTool()
 
-    with pytest.raises(
-        RuntimeError,
-        match="Unexpected programming failure",
-    ):
-        tool.execute(
-            call=ToolCall(
-                tool_name="unexpected_failure_tool",
-            )
+    result = tool.execute(
+        call=ToolCall(
+            tool_name="unexpected_failure_tool",
+        )
+    )
+
+    assert result.success is False
+    assert result.error == "Tool execution failed."
+    assert "Unexpected programming failure" not in result.error
+
+
+@pytest.mark.parametrize("exception_type", [KeyboardInterrupt, SystemExit])
+def test_tool_does_not_catch_process_level_exceptions(exception_type) -> None:
+    class InterruptingTool(ExampleTool):
+        def _run(
+            self,
+            call: ToolCall,
+        ) -> ToolResult:
+            raise exception_type("Process interruption.")
+
+    with pytest.raises(exception_type):
+        InterruptingTool().execute(
+            call=ToolCall(tool_name="example_tool")
         )
 
 

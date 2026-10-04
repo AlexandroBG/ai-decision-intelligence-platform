@@ -38,10 +38,28 @@ class ExampleTool(BaseTool):
         )
 
 
+class FailingTool(BaseTool):
+    @property
+    def definition(
+        self,
+    ) -> ToolDefinition:
+        return ToolDefinition(
+            name="failing_tool",
+            description="Tool used to verify safe failures.",
+        )
+
+    def _run(
+        self,
+        call: ToolCall,
+    ) -> ToolResult:
+        raise RuntimeError("PRIVATE_EXCEPTION_DETAIL")
+
+
 def build_executor() -> ToolExecutor:
     registry = ToolRegistry()
 
     registry.register(ExampleTool())
+    registry.register(FailingTool())
 
     return ToolExecutor(registry=registry)
 
@@ -129,6 +147,31 @@ def test_agent_loop_completes_with_grounded_tool_answer() -> None:
     assert result.grounded_claims[0].evidence_ids == [
         "tool_step_1",
     ]
+
+
+def test_agent_loop_surfaces_safe_failed_tool_observation() -> None:
+    loop = AgentLoop(
+        executor=build_executor(),
+        decide=lambda question, history: AgentDecision(
+            action={
+                "action_type": "tool_call",
+                "call": {
+                    "tool_name": "failing_tool",
+                    "arguments": {},
+                },
+            }
+        ),
+        max_steps=1,
+    )
+
+    result = loop.run(question="Run the failing tool.")
+    observation = result.history.observations[0]
+
+    assert result.status == "max_steps_reached"
+    assert observation.result.success is False
+    assert observation.result.error == "Tool execution failed."
+    assert "PRIVATE_EXCEPTION_DETAIL" not in observation.result.error
+    assert "PRIVATE_EXCEPTION_DETAIL" not in result.model_dump_json()
 
 
 def test_agent_loop_rejects_missing_evidence_steps() -> None:
