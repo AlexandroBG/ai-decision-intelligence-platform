@@ -8,6 +8,7 @@ from app.llm.contracts import LLMInterpretation
 from app.llm.errors import (
     LLMInputError,
     LLMProviderError,
+    LLMRateLimitError,
     LLMResponseError,
 )
 from app.llm.openai_config import OpenAIConfig
@@ -50,6 +51,15 @@ class OpenAIClient:
                 model=self._config.model_name,
                 input=prompt,
             )
+
+        except openai.RateLimitError as exc:
+            self._log_llm_call(
+                request_id=request_id,
+                operation="generate_text",
+                success=False,
+            )
+
+            raise LLMRateLimitError("OpenAI rate or quota limit reached.") from exc
 
         except openai.OpenAIError as exc:
             self._log_llm_call(
@@ -96,6 +106,15 @@ class OpenAIClient:
                 input=prompt,
                 text_format=response_model,
             )
+
+        except openai.RateLimitError as exc:
+            self._log_llm_call(
+                request_id=request_id,
+                operation="generate_structured",
+                success=False,
+            )
+
+            raise LLMRateLimitError("OpenAI rate or quota limit reached.") from exc
 
         except openai.OpenAIError as exc:
             self._log_llm_call(

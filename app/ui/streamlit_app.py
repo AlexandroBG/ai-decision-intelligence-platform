@@ -8,6 +8,9 @@ from app.ui.client import (
     DecisionAPIUnavailableError,
     DecisionProviderUnavailableError,
 )
+from app.ui.formatting import (
+    escape_markdown_currency,
+)
 
 DEFAULT_QUESTION = (
     "What is affecting revenue performance, and what should I investigate first?"
@@ -109,7 +112,9 @@ if analyze_clicked:
                 if result.status == "completed":
                     st.subheader("Decision analysis")
 
-                    st.write(result.answer)
+                    formatted_answer = escape_markdown_currency(result.answer)
+
+                    st.markdown(formatted_answer)
 
                     st.divider()
 

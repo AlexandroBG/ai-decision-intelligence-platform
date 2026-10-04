@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+import httpx
 import openai
 import pytest
 from pydantic import BaseModel
@@ -7,6 +8,7 @@ from pydantic import BaseModel
 from app.llm.errors import (
     LLMInputError,
     LLMProviderError,
+    LLMRateLimitError,
     LLMResponseError,
 )
 from app.llm.openai_client import OpenAIClient
@@ -21,6 +23,24 @@ def build_config() -> OpenAIConfig:
     return OpenAIConfig(
         api_key="test-openai-key",
         model_name="gpt-5.6-luna",
+    )
+
+
+def build_rate_limit_error() -> openai.RateLimitError:
+    request = httpx.Request(
+        "POST",
+        "https://api.openai.com/v1/responses",
+    )
+
+    response = httpx.Response(
+        status_code=429,
+        request=request,
+    )
+
+    return openai.RateLimitError(
+        message="Rate limit reached",
+        response=response,
+        body=None,
     )
 
 
@@ -97,6 +117,26 @@ def test_generate_text_converts_provider_error() -> None:
             )
 
 
+def test_generate_text_converts_rate_limit() -> None:
+    with patch("app.llm.openai_client.OpenAI") as openai_class:
+        sdk_client = MagicMock()
+        openai_class.return_value = sdk_client
+
+        sdk_client.responses.create.side_effect = build_rate_limit_error()
+
+        client = OpenAIClient(
+            config=build_config(),
+        )
+
+        with pytest.raises(
+            LLMRateLimitError,
+            match=("OpenAI rate or quota limit reached"),
+        ):
+            client.generate_text(
+                prompt="Hello",
+            )
+
+
 def test_generate_text_rejects_empty_response() -> None:
     with patch("app.llm.openai_client.OpenAI") as openai_class:
         sdk_client = MagicMock()
@@ -110,7 +150,7 @@ def test_generate_text_rejects_empty_response() -> None:
 
         with pytest.raises(
             LLMResponseError,
-            match="OpenAI returned an empty response",
+            match=("OpenAI returned an empty response"),
         ):
             client.generate_text(
                 prompt="Hello",
@@ -171,6 +211,27 @@ def test_generate_structured_converts_provider_error() -> None:
             )
 
 
+def test_generate_structured_converts_rate_limit() -> None:
+    with patch("app.llm.openai_client.OpenAI") as openai_class:
+        sdk_client = MagicMock()
+        openai_class.return_value = sdk_client
+
+        sdk_client.responses.parse.side_effect = build_rate_limit_error()
+
+        client = OpenAIClient(
+            config=build_config(),
+        )
+
+        with pytest.raises(
+            LLMRateLimitError,
+            match=("OpenAI rate or quota limit reached"),
+        ):
+            client.generate_structured(
+                prompt="Return structured data.",
+                response_model=ExampleResponse,
+            )
+
+
 def test_generate_structured_rejects_missing_parsed_output() -> None:
     with patch("app.llm.openai_client.OpenAI") as openai_class:
         sdk_client = MagicMock()
@@ -184,7 +245,7 @@ def test_generate_structured_rejects_missing_parsed_output() -> None:
 
         with pytest.raises(
             LLMResponseError,
-            match="OpenAI returned an invalid structured response",
+            match=("OpenAI returned an invalid structured response"),
         ):
             client.generate_structured(
                 prompt="Return structured data.",

@@ -1,4 +1,5 @@
-from typing import TypeVar
+import time
+from typing import NoReturn, TypeVar
 
 import httpx
 from google import genai
@@ -10,6 +11,7 @@ from app.llm.contracts import LLMInterpretation
 from app.llm.errors import (
     LLMInputError,
     LLMProviderError,
+    LLMRateLimitError,
     LLMResponseError,
 )
 from app.observability.context import get_request_id
@@ -20,6 +22,20 @@ StructuredResponseT = TypeVar(
     "StructuredResponseT",
     bound=BaseModel,
 )
+
+MAX_PROVIDER_ATTEMPTS = 3
+
+RETRY_DELAYS_SECONDS = (
+    0.5,
+    1.0,
+)
+
+RETRYABLE_PROVIDER_STATUS_CODES = {
+    500,
+    502,
+    503,
+    504,
+}
 
 
 logger = get_logger()
@@ -43,9 +59,13 @@ class GeminiClient:
         request_id = get_request_id()
 
         try:
-            response = self._client.models.generate_content(
-                model=self._config.model_name,
-                contents=prompt,
+            response = self._generate_with_retry(
+                request_id=request_id,
+                operation="generate_text",
+                generate=lambda: self._client.models.generate_content(
+                    model=self._config.model_name,
+                    contents=prompt,
+                ),
             )
 
         except (
@@ -58,7 +78,7 @@ class GeminiClient:
                 success=False,
             )
 
-            raise LLMProviderError("Gemini request failed.") from exc
+            self._raise_provider_error(exc=exc)
 
         if not response.text:
             self._log_llm_call(
@@ -89,12 +109,16 @@ class GeminiClient:
         response_schema = response_model.model_json_schema()
 
         try:
-            response = self._client.models.generate_content(
-                model=self._config.model_name,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type=("application/json"),
-                    response_json_schema=(response_schema),
+            response = self._generate_with_retry(
+                request_id=request_id,
+                operation="generate_structured",
+                generate=lambda: self._client.models.generate_content(
+                    model=self._config.model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type=("application/json"),
+                        response_json_schema=(response_schema),
+                    ),
                 ),
             )
 
@@ -108,7 +132,7 @@ class GeminiClient:
                 success=False,
             )
 
-            raise LLMProviderError("Gemini request failed.") from exc
+            self._raise_provider_error(exc=exc)
 
         try:
             result = self._parse_structured_response(
@@ -141,6 +165,116 @@ class GeminiClient:
             prompt=prompt,
             response_model=LLMInterpretation,
         )
+
+    def _generate_with_retry(
+        self,
+        request_id: str,
+        operation: str,
+        generate,
+    ):
+        for attempt in range(
+            1,
+            MAX_PROVIDER_ATTEMPTS + 1,
+        ):
+            try:
+                return generate()
+
+            except (
+                errors.APIError,
+                httpx.HTTPError,
+            ) as exc:
+                if (
+                    attempt >= MAX_PROVIDER_ATTEMPTS
+                    or not self._is_retryable_provider_error(exc=exc)
+                ):
+                    raise
+
+                delay_seconds = RETRY_DELAYS_SECONDS[attempt - 1]
+
+                logger.warning(
+                    (
+                        "request_id=%s "
+                        "event=llm_retry "
+                        "model=%s "
+                        "operation=%s "
+                        "attempt=%s "
+                        "max_attempts=%s "
+                        "delay_seconds=%s"
+                    ),
+                    request_id,
+                    self._config.model_name,
+                    operation,
+                    attempt,
+                    MAX_PROVIDER_ATTEMPTS,
+                    delay_seconds,
+                )
+
+                time.sleep(delay_seconds)
+
+        raise RuntimeError("Provider retry loop exited unexpectedly.")
+
+    @staticmethod
+    def _is_retryable_provider_error(
+        exc: Exception,
+    ) -> bool:
+        if isinstance(
+            exc,
+            errors.APIError,
+        ):
+            status_code = getattr(
+                exc,
+                "code",
+                None,
+            )
+
+            return status_code in RETRYABLE_PROVIDER_STATUS_CODES
+
+        if isinstance(
+            exc,
+            (
+                httpx.TimeoutException,
+                httpx.NetworkError,
+                httpx.RemoteProtocolError,
+            ),
+        ):
+            return True
+
+        if isinstance(
+            exc,
+            httpx.HTTPStatusError,
+        ):
+            return exc.response.status_code in RETRYABLE_PROVIDER_STATUS_CODES
+
+        return False
+
+    @staticmethod
+    def _raise_provider_error(
+        exc: Exception,
+    ) -> NoReturn:
+        if (
+            isinstance(
+                exc,
+                errors.APIError,
+            )
+            and getattr(
+                exc,
+                "code",
+                None,
+            )
+            == 429
+        ):
+            raise LLMRateLimitError("Gemini rate or quota limit reached.") from exc
+
+        if (
+            isinstance(
+                exc,
+                httpx.HTTPStatusError,
+            )
+            and exc.response.status_code == 429
+        ):
+            raise LLMRateLimitError("Gemini rate or quota limit reached.") from exc
+
+        raise LLMProviderError("Gemini request failed.") from exc
 
     @staticmethod
     def _parse_structured_response(

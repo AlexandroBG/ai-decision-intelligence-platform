@@ -27,6 +27,7 @@ from app.api.service import (
 )
 from app.llm.errors import (
     LLMProviderError,
+    LLMRateLimitError,
 )
 from app.observability.context import (
     reset_request_id,
@@ -202,6 +203,25 @@ def create_decision(
 ) -> DecisionResponse:
     try:
         result = service.decide(request=decision_request)
+
+    except LLMRateLimitError as exc:
+        metrics.increment("provider_errors_total")
+
+        request_id = getattr(
+            request.state,
+            "request_id",
+            "unknown",
+        )
+
+        logger.error(
+            ("request_id=%s event=provider_rate_limit status_code=429"),
+            request_id,
+        )
+
+        raise HTTPException(
+            status_code=(status.HTTP_429_TOO_MANY_REQUESTS),
+            detail=("AI provider quota or rate limit has been reached."),
+        ) from exc
 
     except LLMProviderError as exc:
         metrics.increment("provider_errors_total")

@@ -9,6 +9,10 @@ from app.agent.contracts import (
     AgentRunResult,
     AgentToolAction,
 )
+from app.agent.coverage import (
+    build_coverage_retry_question,
+    missing_required_tools,
+)
 from app.agent.grounding import (
     AgentGroundingError,
     evidence_steps_to_ids,
@@ -54,13 +58,14 @@ class AgentLoop:
         history = AgentHistory()
         executed_calls: set[str] = set()
         tool_failure_count = 0
+        decision_question = normalized_question
 
         for step_index in range(
             1,
             self._max_steps + 1,
         ):
             decision = self._decide(
-                normalized_question,
+                decision_question,
                 history,
             )
 
@@ -81,7 +86,7 @@ class AgentLoop:
                         reason=evidence_error,
                         step_index=step_index,
                         history=history,
-                        tool_failure_count=(tool_failure_count),
+                        tool_failure_count=tool_failure_count,
                     )
 
                 grounding_error = self._validate_final_grounding(
@@ -95,13 +100,26 @@ class AgentLoop:
                         reason=grounding_error,
                         step_index=step_index,
                         history=history,
-                        tool_failure_count=(tool_failure_count),
+                        tool_failure_count=tool_failure_count,
                     )
+
+                missing_tools = missing_required_tools(
+                    question=normalized_question,
+                    history=history,
+                )
+
+                if missing_tools:
+                    decision_question = build_coverage_retry_question(
+                        original_question=normalized_question,
+                        missing_tools=missing_tools,
+                    )
+
+                    continue
 
                 return AgentRunResult(
                     answer=action.answer,
-                    evidence_steps=(action.evidence_steps),
-                    grounded_claims=(action.grounded_claims),
+                    evidence_steps=action.evidence_steps,
+                    grounded_claims=action.grounded_claims,
                     status="completed",
                     termination_reason=None,
                     steps_used=step_index,
@@ -116,16 +134,18 @@ class AgentLoop:
             ):
                 if tool_failure_count >= self._max_tool_failures:
                     return self._build_terminated_result(
-                        status=("tool_failure_limit_reached"),
+                        status="tool_failure_limit_reached",
                         reason=(
                             "Agent exceeded the allowed number of failed tool calls."
                         ),
                         step_index=step_index,
                         history=history,
-                        tool_failure_count=(tool_failure_count),
+                        tool_failure_count=tool_failure_count,
                     )
 
-                call_signature = self._build_call_signature(call=action.call)
+                call_signature = self._build_call_signature(
+                    call=action.call,
+                )
 
                 if call_signature in executed_calls:
                     return self._build_terminated_result(
@@ -133,12 +153,14 @@ class AgentLoop:
                         reason=("Agent attempted to repeat an identical tool call."),
                         step_index=step_index,
                         history=history,
-                        tool_failure_count=(tool_failure_count),
+                        tool_failure_count=tool_failure_count,
                     )
 
                 executed_calls.add(call_signature)
 
-                result = self._executor.execute(call=action.call)
+                result = self._executor.execute(
+                    call=action.call,
+                )
 
                 observation = AgentObservation(
                     call=action.call,
@@ -211,7 +233,9 @@ class AgentLoop:
             return str(exc)
 
         declared_evidence_ids = set(
-            evidence_steps_to_ids(evidence_steps=(action.evidence_steps))
+            evidence_steps_to_ids(
+                evidence_steps=action.evidence_steps,
+            )
         )
 
         claimed_evidence_ids = {

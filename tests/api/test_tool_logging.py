@@ -12,6 +12,10 @@ from app.observability.context import (
     set_request_id,
 )
 
+PRIVATE_ARGUMENT = "PRIVATE_ARGUMENT_123"
+PRIVATE_OUTPUT = "PRIVATE_OUTPUT_456"
+PRIVATE_ERROR = "PRIVATE_ERROR_789"
+
 
 class FakeRunner:
     def run(
@@ -21,18 +25,30 @@ class FakeRunner:
         first_observation = SimpleNamespace(
             call=SimpleNamespace(
                 tool_name="analyze_revenue",
+                arguments={
+                    "private_value": PRIVATE_ARGUMENT,
+                },
             ),
             result=SimpleNamespace(
                 success=True,
+                output={
+                    "private_value": PRIVATE_OUTPUT,
+                },
+                error=None,
             ),
         )
 
         second_observation = SimpleNamespace(
             call=SimpleNamespace(
-                tool_name="analyze_revenue_drivers",
+                tool_name=("analyze_revenue_drivers"),
+                arguments={
+                    "private_value": PRIVATE_ARGUMENT,
+                },
             ),
             result=SimpleNamespace(
                 success=False,
+                output=None,
+                error=PRIVATE_ERROR,
             ),
         )
 
@@ -103,6 +119,14 @@ def test_runtime_service_logs_tool_usage(
         assert "tool_name=analyze_revenue_drivers" in second_message
 
         assert "success=false" in second_message
+
+        combined_messages = first_message + "\n" + second_message
+
+        assert PRIVATE_ARGUMENT not in combined_messages
+
+        assert PRIVATE_OUTPUT not in combined_messages
+
+        assert PRIVATE_ERROR not in combined_messages
 
     finally:
         reset_request_id(token)
