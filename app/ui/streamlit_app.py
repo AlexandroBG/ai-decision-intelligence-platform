@@ -6,6 +6,7 @@ from app.ui.client import (
     DecisionAPIResponseError,
     DecisionAPITimeoutError,
     DecisionAPIUnavailableError,
+    DecisionProviderRateLimitError,
     DecisionProviderUnavailableError,
 )
 from app.ui.formatting import (
@@ -80,6 +81,11 @@ if analyze_clicked:
             try:
                 result = client.create_decision(question=normalized_question)
 
+            except DecisionProviderRateLimitError:
+                st.error("AI provider quota or rate limit has been reached.")
+
+                st.info("Please try again after the provider quota resets.")
+
             except DecisionProviderUnavailableError:
                 st.error("AI provider is temporarily unavailable.")
 
@@ -138,7 +144,7 @@ if analyze_clicked:
                     if result.evidence_steps:
                         st.caption(
                             "Evidence observations used: "
-                            + ", ".join(str(step) for step in result.evidence_steps)
+                            + ", ".join(str(step) for step in (result.evidence_steps))
                         )
 
                 else:

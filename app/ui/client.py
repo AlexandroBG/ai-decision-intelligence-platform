@@ -30,6 +30,10 @@ class DecisionProviderUnavailableError(DecisionAPIError):
     """Raised when the external AI provider is unavailable."""
 
 
+class DecisionProviderRateLimitError(DecisionAPIError):
+    """Raised when the external AI provider rate or quota limit is reached."""
+
+
 class DecisionAPIResponseError(DecisionAPIError):
     """Raised when the API returns an invalid response."""
 
@@ -109,6 +113,11 @@ class DecisionAPIClient:
             raise DecisionAPIUnavailableError(
                 "Could not connect to the DecisionAI API."
             ) from exc
+
+        if response.status_code == 429:
+            raise DecisionProviderRateLimitError(
+                "AI provider quota or rate limit has been reached."
+            )
 
         if response.status_code == 503:
             raise DecisionProviderUnavailableError(
