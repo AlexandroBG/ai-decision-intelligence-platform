@@ -180,7 +180,7 @@ jobs:
             --cluster "$ECS_CLUSTER" \
             --service "$API_ECS_SERVICE" \
             --task-definition "${{ steps.api-task.outputs.task_definition_arn }}" \
-            --no-cli-pager
+            --no-cli-pager > /dev/null
 
       - name: Update UI service
         run: |
@@ -188,7 +188,7 @@ jobs:
             --cluster "$ECS_CLUSTER" \
             --service "$UI_ECS_SERVICE" \
             --task-definition "${{ steps.ui-task.outputs.task_definition_arn }}" \
-            --no-cli-pager
+            --no-cli-pager > /dev/null
 
       - name: Show deployed task definitions
         run: |
