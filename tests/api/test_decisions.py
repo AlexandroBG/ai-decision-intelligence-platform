@@ -1,6 +1,9 @@
+import pytest
 from fastapi.testclient import TestClient
 
 import app.api.main as main_module
+from app.agent.contracts import AgentDecision, AgentHistory
+from app.agent.loop import AgentLoop
 from app.api.contracts import (
     DecisionRequest,
     DecisionResponse,
@@ -9,9 +12,15 @@ from app.api.main import (
     app,
     get_decision_service,
 )
+from app.api.service import RuntimeDecisionService
 from app.llm.errors import (
     LLMProviderError,
 )
+from app.tools.base import BaseTool
+from app.tools.contracts import ToolCall, ToolDefinition, ToolResult
+from app.tools.errors import ToolExecutionError
+from app.tools.executor import ToolExecutor
+from app.tools.registry import ToolRegistry
 
 
 class FakeDecisionService:
@@ -273,6 +282,82 @@ def test_decisions_returns_200_for_agent_termination() -> None:
         }
     finally:
         app.dependency_overrides.clear()
+
+
+@pytest.mark.parametrize(
+    ("exception", "expected_error"),
+    [
+        pytest.param(
+            RuntimeError("PRIVATE_TOOL_EXCEPTION_SENTINEL_123"),
+            "Tool execution failed.",
+            id="unexpected_exception",
+        ),
+        pytest.param(
+            ToolExecutionError("Expected tool failure."),
+            "Expected tool failure.",
+            id="expected_domain_failure",
+        ),
+    ],
+)
+def test_decisions_handles_tool_implementation_errors(
+    monkeypatch,
+    exception: Exception,
+    expected_error: str,
+) -> None:
+    class FailingTool(BaseTool):
+        @property
+        def definition(self) -> ToolDefinition:
+            return ToolDefinition(
+                name="failing_tool",
+                description="Tool used to verify API failure handling.",
+            )
+
+        def _run(self, call: ToolCall) -> ToolResult:
+            raise exception
+
+    observed_results: list[ToolResult] = []
+
+    def decide(question: str, history: AgentHistory) -> AgentDecision:
+        observed_results.extend(
+            observation.result for observation in history.observations
+        )
+        return AgentDecision(
+            action={
+                "action_type": "tool_call",
+                "call": {"tool_name": "failing_tool", "arguments": {}},
+            }
+        )
+
+    registry = ToolRegistry()
+    registry.register(FailingTool())
+    loop = AgentLoop(
+        executor=ToolExecutor(registry=registry),
+        decide=decide,
+        max_steps=2,
+        max_tool_failures=1,
+    )
+    service = RuntimeDecisionService(runner=loop)
+    monkeypatch.setitem(
+        app.dependency_overrides, get_decision_service, lambda: service
+    )
+
+    response = TestClient(app).post(
+        "/decisions",
+        json={"question": "Run the failing tool."},
+    )
+
+    assert len(observed_results) == 1
+    assert observed_results[0].success is False
+    assert observed_results[0].error == expected_error
+    assert response.status_code == 200
+    assert str(exception) not in response.text
+    assert response.json() == {
+        "status": "failed",
+        "answer": None,
+        "steps_used": 2,
+        "tool_calls": 1,
+        "evidence_steps": [],
+    }
 
 
 def test_decisions_returns_503_when_provider_fails() -> None:
