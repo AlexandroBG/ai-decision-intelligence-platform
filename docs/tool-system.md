@@ -38,9 +38,9 @@ The contracts normalize names, validate payloads, and enforce success/error inva
 
 ### Base tool abstraction
 
-The base tool defines the execution template and enforces tool-name identity, expected error conversion, propagation of unexpected programming errors, and result identity.
+The base tool defines the execution template and enforces tool-name identity, failure conversion, and result identity. `ToolExecutionError` is an expected, controlled failure whose authored message is preserved. Unexpected ordinary exceptions become a failed result with the fixed message `Tool execution failed.`; `KeyboardInterrupt` and `SystemExit` propagate.
 
-Expected operational failures become structured `ToolResult(success=False, ...)` values. Unexpected bugs are not hidden.
+Expected and unexpected tool failures remain observable as structured `ToolResult(success=False, ...)` values.
 
 ### Tool registry
 
@@ -88,9 +88,9 @@ The tool layer does not duplicate analytics or ML logic. It delegates to already
 
 Operational failures are returned as structured values so the agent can reason about them.
 
-### Programming bugs still fail loudly
+### Unexpected implementation failures are sanitized
 
-Unexpected exceptions are not swallowed. This preserves debuggability and prevents production defects from being misclassified as normal tool failures.
+Unexpected ordinary exceptions from tool implementations become structured failures without exposing their raw messages. Process-level exceptions such as `KeyboardInterrupt` and `SystemExit` are not caught.
 
 ### Tool schemas are explicit
 
